@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#5c6bc0">
+    <title>Daily Talk's</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- <link rel="icon" href="/icons/icon-192.png" type="image/png"> -->
+</head>
+<body>
+
+    <!-- Offline Status Indicator -->
+    <div id="offline-indicator" class="offline-indicator" hidden> You are currently offline. Some features may be unavailable. </div>
+
+    <!-- Age Confirmation Modal -->
+    <div id="age-confirm-modal" class="modal age-modal" hidden> <div class="modal-content"> <h2>Age Confirmation</h2> <p>Welcome to Daily Talk's! This is an anonymous platform where content is user-generated and ephemeral. Content may not be suitable for minors.</p> <p>Please confirm you are 18 years of age or older to enter.</p> <button id="confirm-age-button" class="confirm-button">I Confirm I Am 18+</button> </div> </div>
+
+    <!-- Info / Welcome Modal -->
+    <div id="info-modal" class="modal info-modal" hidden> <div class="modal-content"> <h2>Welcome to Daily Talk's!</h2> <div class="info-section"><h3>What is Daily Talk's?</h3><p>This is a public, anonymous, and ephemeral social journal. Think of it as a shared diary where you can post short thoughts about your day, and they disappear after 24 hours.</p></div> <div class="info-section"><h3>Why Use It?</h3><p>It's a space for low-pressure sharing without the permanence or identity focus of other platforms. Feeling stressed, happy, or just want to note something down? Share it here briefly! Example: "Finally finished that tough project! Feeling relieved. 🎉"</p></div> <div class="info-section"><h3>Key Things to Know:</h3><ul><li>✅ **Anonymous:** You get a random username (stored locally on your device).</li><li>⏳ **Ephemeral:** Posts (and their comments/likes) vanish after 24 hours.</li><li>📝 **Text-Only:** Keep it simple with text posts and comments.</li><li>🌍 **Public:** Posts are visible to anyone using the app unless you delete them sooner.</li></ul></div> <div class="info-section disclaimer-section"><h3>Disclaimer</h3><p>Content is user-generated. The platform developers are not responsible for user posts or interactions. Users are solely responsible for their own actions and the content they share.</p></div> <div class="info-section note-section"><h3>Important Note</h3><p>❗️ Please **do not share private or sensitive information** (personal details, passwords, etc.).</p><p>🚫 Avoid posting disrespectful, hateful, illegal, or inappropriate content.</p><p>💖 Be kind, be respectful, and remember your words matter.</p></div> <button id="confirm-info-button" class="confirm-button">Got It!</button> </div> </div>
+
+    <!-- *** NEW: Username Setup Modal (Shows if no username in localStorage) *** -->
+    <div id="username-setup-modal" class="modal username-modal" hidden>
+        <div class="modal-content">
+            <h2>Choose Your Username</h2>
+            <p>Select a unique username for your time here. You can use the random one or create your own (3-20 chars, letters/numbers/hyphen/underscore only).</p>
+
+            <div class="username-input-group">
+                <input type="text" id="username-input" placeholder="Enter or generate username..." required minlength="3" maxlength="20" pattern="^[a-zA-Z0-9_-]+$">
+                <button id="regenerate-username-button" class="icon-button" aria-label="Regenerate Username">🔄</button>
+            </div>
+            <div id="username-status" class="username-status-message"></div> <!-- For Available/Taken messages -->
+
+            <div class="profile-visibility-group">
+                <label>Profile Visibility:</label>
+                <div>
+                    <input type="radio" id="visibility-public" name="profileVisibility" value="public" checked>
+                    <label for="visibility-public">Public (Others can see your posts)</label>
+                </div>
+                <div>
+                    <input type="radio" id="visibility-private" name="profileVisibility" value="private">
+                    <label for="visibility-private">Private (Only you can see your posts)</label>
+                </div>
+            </div>
+
+            <button id="confirm-username-button" class="confirm-button">Confirm Username & Enter</button>
+            <div id="username-setup-error" class="error-message" style="display: none;"></div> <!-- Specific errors for this modal -->
+        </div>
+    </div>
+    <!-- *** End Username Setup Modal *** -->
+
+
+    <!-- Header -->
+    <header id="app-header"> <h1 id="section-title">Home</h1> <button id="settings-button" class="icon-button" aria-label="Settings">⚙️</button> </header>
+
+    <!-- Main Content Area -->
+    <main id="app-content"> <!-- Placeholder until app loads or modals are confirmed --> <div id="initial-load-placeholder"><p class="text-center padding-1">Loading...</p></div> </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav id="bottom-nav"> <button data-section="home" class="nav-button active" aria-label="Home">🏠</button> <button data-section="notifications" class="nav-button" aria-label="Notifications">🔔</button> <button data-section="create" class="nav-button create-button" aria-label="Create Post">➕</button> <button data-section="profile" class="nav-button" aria-label="Profile">👤</button> </nav>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal" hidden> <div class="modal-content"> <button id="close-settings-button" class="icon-button close-button" aria-label="Close Settings">×</button> <h2>Settings</h2> <div class="setting-item theme-switcher"> <label for="theme-toggle">Dark Mode</label> <label class="switch"> <input type="checkbox" id="theme-toggle"> <span class="slider round"></span> </label> </div> <div class="setting-item about-section"> <h3>About Daily Talk's</h3> <p>Share your day anonymously. Posts are deleted after 24 hours. Be respectful.</p> </div> </div> </div>
+
+    <!-- Link to the JavaScript file -->
+    <script src="script.js"></script>
+</body>
+</html>

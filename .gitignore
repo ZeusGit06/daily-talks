@@ -1,0 +1,15 @@
+# .gitignore
+
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Optional build folders (if any in future)
+# build/
+# dist/
+
+# OS generated files
+.DS_Store
+Thumbs.db
