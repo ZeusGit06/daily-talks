@@ -104,6 +104,8 @@ body.dark-mode #app-header h1 {
 html {
     font-size: 16px;
     height: 100%;
+    height: 100dvh;
+    /* Dynamic viewport height for mobile */
 }
 
 body {
@@ -113,6 +115,8 @@ body {
     color: var(--text-primary);
     line-height: 1.5;
     height: 100%;
+    height: 100dvh;
+    /* Dynamic viewport height for mobile */
     overflow-y: hidden;
     /* App wrapper handles scroll */
 }
@@ -123,7 +127,10 @@ body {
     max-width: var(--app-max-width);
     margin: 0 auto;
     min-height: 100vh;
+    min-height: 100dvh;
+    /* Dynamic viewport for mobile browsers */
     height: 100%;
+    height: 100dvh;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -162,8 +169,8 @@ body {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: calc(var(--header-height) + 1rem) 1rem calc(var(--nav-height) + 1rem);
-    /* Space for header & nav */
+    padding: calc(var(--header-height) + 1rem) 1rem calc(var(--nav-height) + env(safe-area-inset-bottom, 0px) + 1.5rem);
+    /* Space for header & fixed nav with safe area */
     scrollbar-width: thin;
     scrollbar-color: var(--text-tertiary) transparent;
 }
@@ -184,11 +191,13 @@ body {
 
 /* --- Bottom Nav --- */
 #bottom-nav {
-    position: absolute;
+    position: fixed;
     bottom: 0;
-    left: 0;
+    left: 50%;
+    transform: translateX(-50%);
     width: 100%;
-    height: var(--nav-height);
+    max-width: var(--app-max-width);
+    height: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
     background-color: var(--surface-transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -196,9 +205,9 @@ body {
     display: flex;
     justify-content: space-evenly;
     align-items: center;
-    z-index: 50;
+    z-index: 100;
     padding: 0 1rem;
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .nav-button {
@@ -491,13 +500,76 @@ textarea:focus {
 
 /* --- Comments Section --- */
 .comments-section {
-    background-color: var(--background-color);
-    border-top: 1px solid var(--border-color);
+    background-color: var(--surface-color);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
     padding: 1.25rem;
-    margin: 1rem -1.25rem -1.25rem;
-    /* Full bleed in card */
-    border-bottom-left-radius: var(--radius-lg);
-    border-bottom-right-radius: var(--radius-lg);
+    margin-top: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.comments-section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Comment Form */
+.comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.comment-form input[type="text"] {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+.comment-form input[type="text"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    background-color: var(--surface-color);
+}
+
+.comment-form input[type="text"]::placeholder {
+    color: var(--text-tertiary);
+}
+
+.comment-form button#submit-comment-btn {
+    align-self: flex-end;
+    padding: 0.65rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+    color: white;
+    border: none;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+}
+
+.comment-form button#submit-comment-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
+}
+
+.comment-form button#submit-comment-btn:active {
+    transform: translateY(0);
 }
 
 .comment-input-group {
