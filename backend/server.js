@@ -15,7 +15,8 @@ const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:5173', // Vite dev server
-    // Add your production domain here, e.g., 'https://yourdomain.com'
+    'https://daily-talks.onrender.com', // Production domain
+    'http://daily-talks.onrender.com', // Production domain (http)
 ];
 
 const corsOptions = {
