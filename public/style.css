@@ -1,313 +1,1190 @@
 /* style.css */
 
-/* Basic Reset & Root Variables */
+/* --- Root Variables & Design System --- */
 :root {
-    --background-color: #ffffff;
-    --text-color: #333333;
-    --card-bg-color: #f9f9f9;
-    --border-color: #eeeeee;
-    --accent-color: #5c6bc0;
-    --accent-text-color: #ffffff;
-    --nav-bg-color: #f1f1f1;
-    --nav-icon-color: #555555;
-    --nav-icon-active-color: var(--accent-color);
-    --modal-overlay-bg: rgba(0, 0, 0, 0.6);
-    --button-bg-color: var(--accent-color);
-    --button-text-color: var(--accent-text-color);
-    --placeholder-text-color: #777777;
-    --error-color: #d32f2f;
-    --success-color: #388e3c;
-    --notification-dot-color: var(--error-color);
-    --notification-unread-bg: rgba(92, 107, 192, 0.08);
-    --notification-hover-bg: rgba(0, 0, 0, 0.03);
-    --note-bg-color: rgba(255, 235, 59, 0.1);
-    --note-border-color: #ffeb3b;
-    --disclaimer-bg-color: rgba(255, 82, 82, 0.05);
-    --disclaimer-border-color: #ff5252;
-    --comment-section-bg: rgba(0, 0, 0, 0.02);
-    --offline-bg-color: #ff9800;
-    --offline-text-color: #000000;
-    --author-badge-bg: var(--accent-color);
-    --author-badge-text: var(--accent-text-color);
+    /* Color Palette - Vibrant Application */
+    --primary-color: #6366f1;
+    /* Indigo-500 */
+    --primary-hover: #4f46e5;
+    /* Indigo-600 */
+    --primary-light: #e0e7ff;
+    /* Indigo-100 */
+
+    --secondary-color: #ec4899;
+    /* Pink-500 */
+
+    --background-color: #f3f4f6;
+    /* Cool Gray 100 */
+    --surface-color: #ffffff;
+    --surface-transparent: rgba(255, 255, 255, 0.85);
+    /* For glassmorphism */
+
+    --text-primary: #111827;
+    /* Gray 900 */
+    --text-secondary: #6b7280;
+    /* Gray 500 */
+    --text-tertiary: #9ca3af;
+    /* Gray 400 */
+
+    --border-color: #e5e7eb;
+    /* Gray 200 */
+    --border-hover: #d1d5db;
+    /* Gray 300 */
+
+    --success-color: #10b981;
+    /* Emerald 500 */
+    --error-color: #ef4444;
+    /* Red 500 */
+    --warning-color: #f59e0b;
+    /* Amber 500 */
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+    /* Radii */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 1rem;
+    --radius-full: 9999px;
+
+    /* Layout */
+    --app-max-width: 600px;
+    --header-height: 60px;
+    --nav-height: 64px;
 }
+
+/* Dark Mode Variables */
+/* Default to dark mode based on system preference is handled via class toggle in JS, 
+   but we could add a media query here if we wanted auto-switch without JS class. 
+   For now, we rely on body.dark-mode */
 
 body.dark-mode {
-    --background-color: #121212;
-    --text-color: #e0e0e0;
-    --card-bg-color: #1e1e1e;
-    --border-color: #333333;
-    --nav-bg-color: #1f1f1f;
-    --nav-icon-color: #aaaaaa;
-    --nav-icon-active-color: var(--accent-color);
-    --modal-overlay-bg: rgba(0, 0, 0, 0.7);
-    --placeholder-text-color: #999999;
-    --error-color: #ef5350;
-    --success-color: #66bb6a;
-    --notification-dot-color: var(--error-color);
-    --notification-unread-bg: rgba(126, 87, 194, 0.12);
-    --notification-hover-bg: rgba(255, 255, 255, 0.05);
-    --note-bg-color: rgba(255, 235, 59, 0.15);
-    --note-border-color: #fdd835;
-    --disclaimer-bg-color: rgba(255, 82, 82, 0.1);
-    --disclaimer-border-color: #ff5252;
-    --comment-section-bg: rgba(255, 255, 255, 0.04);
-    --offline-bg-color: #ffb74d;
-    --offline-text-color: #000000;
-    --author-badge-bg: var(--accent-color);
-    --author-badge-text: var(--accent-text-color);
+    --primary-color: #818cf8;
+    /* Indigo-400 */
+    --primary-hover: #6366f1;
+    /* Indigo-500 */
+    --primary-light: rgba(99, 102, 241, 0.15);
+
+    --background-color: #111827;
+    /* Gray 900 */
+    --surface-color: #1f2937;
+    /* Gray 800 */
+    --surface-transparent: rgba(31, 41, 55, 0.85);
+
+    --text-primary: #f9fafb;
+    /* Gray 50 */
+    --text-secondary: #9ca3af;
+    /* Gray 400 */
+    --text-tertiary: #6b7280;
+    /* Gray 500 */
+
+    --border-color: #374151;
+    /* Gray 700 */
+    --border-hover: #4b5563;
+    /* Gray 600 */
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--background-color); color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; transition: background-color 0.2s ease-out, color 0.2s ease-out; padding-top: 50px; padding-bottom: 60px; overflow-x: hidden; }
+body.dark-mode #app-header h1 {
+    color: var(--text-primary);
+}
 
-/* --- Offline Indicator --- */
-.offline-indicator { position: fixed; top: 50px; left: 0; width: 100%; background-color: var(--offline-bg-color); color: var(--offline-text-color); padding: 0.5rem 1rem; text-align: center; font-size: 0.9rem; font-weight: 500; z-index: 1100; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: block; }
-.offline-indicator[hidden] { display: none; }
-body.is-offline { padding-top: 85px; }
-body.is-offline #app-header { top: 35px; }
+/* --- Global Reset & Typography --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
 
-/* --- Header Styles --- */
-#app-header { position: fixed; top: 0; left: 0; width: 100%; height: 50px; background-color: var(--nav-bg-color); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 1rem; z-index: 100; transition: background-color 0.2s ease-out, border-color 0.2s ease-out, top 0.2s ease-out; }
-#app-header h1 { font-size: 1.25rem; font-weight: 600; }
+html {
+    font-size: 16px;
+    height: 100%;
+}
 
-/* --- Content Area --- */
-#app-content { flex-grow: 1; padding: 1rem; overflow-y: auto; width: 100%; }
-#app-content h2 { margin-bottom: 1rem; font-weight: 600; }
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #e5e7eb;
+    /* Fallback for desktop margins */
+    color: var(--text-primary);
+    line-height: 1.5;
+    height: 100%;
+    overflow-y: hidden;
+    /* App wrapper handles scroll */
+}
 
-/* --- Bottom Navigation --- */
-#bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background-color: var(--nav-bg-color); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: stretch; z-index: 100; transition: background-color 0.2s ease-out, border-color 0.2s ease-out; }
-.nav-button { background: none; border: none; font-size: 1.75rem; color: var(--nav-icon-color); cursor: pointer; padding: 0; flex-grow: 1; display: flex; justify-content: center; align-items: center; transition: color 0.2s ease-out; -webkit-tap-highlight-color: transparent; position: relative; }
-.nav-button.active { color: var(--nav-icon-active-color); }
-.nav-button.create-button { font-size: 2rem; }
-.nav-button:hover:not(.active) { color: var(--text-color); }
-.nav-button[data-section="notifications"].has-unread::after { content: ''; position: absolute; top: 10px; right: calc(50% - 20px); width: 8px; height: 8px; background-color: var(--notification-dot-color); border-radius: 50%; border: 1px solid var(--background-color); }
+/* --- App Wrapper (Mobile View on Desktop) --- */
+#app-wrapper {
+    background-color: var(--background-color);
+    max-width: var(--app-max-width);
+    margin: 0 auto;
+    min-height: 100vh;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-2xl, 0 25px 50px -12px rgba(0, 0, 0, 0.25));
+    overflow: hidden;
+}
 
-/* --- Generic Button Styles --- */
-button { cursor: pointer; font-family: inherit; }
-button:disabled { cursor: not-allowed; opacity: 0.6; }
-.icon-button { background: none; border: none; font-size: 1.5rem; padding: 5px; color: var(--text-color); line-height: 1; }
-
-/* --- Base Modal Styles --- */
-.modal { position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: var(--modal-overlay-bg); display: flex; justify-content: center; align-items: center; backdrop-filter: blur(2px); transition: opacity 0.2s ease-in-out; }
-.modal[hidden] { display: none; }
-.modal-content { background-color: var(--background-color); padding: 20px; border: 1px solid var(--border-color); border-radius: 8px; width: 90%; max-width: 500px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.2); transition: background-color 0.2s ease-out, border-color 0.2s ease-out; line-height: 1.5; max-height: 90vh; overflow-y: auto; }
-.modal-content h2 { margin-top: 0; margin-bottom: 1.5rem; text-align: center; }
-.modal-content p { margin-bottom: 1rem; }
-
-/* --- Settings Modal Styles --- */
-.close-button { position: absolute; top: 10px; right: 10px; font-size: 1.75rem; font-weight: bold; line-height: 1; padding: 0 5px; }
-.setting-item { margin-bottom: 1.25rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); transition: border-color 0.2s ease-out; }
-.setting-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.setting-item label { margin-right: 10px; font-weight: 500; }
-.setting-item h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
-.about-section p { font-size: 0.95rem; line-height: 1.5; color: var(--placeholder-text-color); }
-.theme-switcher { display: flex; justify-content: space-between; align-items: center; }
-.switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }
-.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }
-input:checked + .slider { background-color: var(--accent-color); }
-input:focus + .slider { box-shadow: 0 0 1px var(--accent-color); }
-input:checked + .slider:before { transform: translateX(26px); }
-.slider.round { border-radius: 24px; }
-.slider.round:before { border-radius: 50%; }
-
-/* --- Age Confirmation Modal Styles --- */
-.age-modal { z-index: 2000; background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px); }
-.age-modal .modal-content { text-align: center; max-width: 400px; border-color: var(--error-color); }
-.age-modal .modal-content h2 { color: var(--error-color); }
-.confirm-button { display: block; width: 100%; padding: 0.8rem 1.5rem; margin-top: 1.5rem; background-color: var(--accent-color); color: var(--accent-text-color); border: none; border-radius: 5px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s, opacity 0.2s; }
-.confirm-button:hover { opacity: 0.9; }
-
-/* --- Info / Welcome Modal Styles --- */
-.info-modal { z-index: 1500; }
-.info-modal .modal-content { text-align: left; }
-.info-section { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--border-color); }
-.info-section:last-of-type { margin-bottom: 1.5rem; border-bottom: none; padding-bottom: 0; }
-.info-section h3 { margin-bottom: 0.5rem; color: var(--accent-color); font-weight: 600; }
-.info-section ul { list-style-position: inside; padding-left: 0.5rem; }
-.info-section li { margin-bottom: 0.3rem; }
-.disclaimer-section { border-left: 4px solid var(--disclaimer-border-color); padding-left: 1rem; background-color: var(--disclaimer-bg-color); border-bottom: none; margin-bottom: 1.5rem; }
-.note-section { border-left: 4px solid var(--note-border-color); padding-left: 1rem; background-color: var(--note-bg-color); border-bottom: none; margin-bottom: 1.5rem; }
-.note-section p { margin-bottom: 0.5rem; }
-
-/* --- Username Setup Modal Styles --- */
-.username-modal { z-index: 1600; }
-.username-modal .modal-content { max-width: 450px; text-align: center; }
-.username-input-group { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
-#username-input { flex-grow: 1; padding: 0.6rem 0.8rem; border: 1px solid var(--border-color); border-radius: 5px; font-size: 1rem; background-color: var(--background-color); color: var(--text-color); transition: border-color 0.2s; }
-#username-input:focus { border-color: var(--accent-color); outline: none; }
-#regenerate-username-button { flex-shrink: 0; font-size: 1.4rem; padding: 0.4rem; }
-.username-status-message { min-height: 1.2em; font-size: 0.9rem; margin-bottom: 1rem; text-align: left; }
-.username-status-message.checking { color: var(--placeholder-text-color); font-style: italic; }
-.username-status-message.available { color: var(--success-color); font-weight: 500; }
-.username-status-message.taken { color: var(--error-color); font-weight: 500; }
-.username-status-message.invalid { color: var(--error-color); font-weight: 500; }
-.profile-visibility-group { text-align: left; margin-bottom: 1.5rem; padding-top: 0.5rem; border-top: 1px dashed var(--border-color); }
-.profile-visibility-group > label { font-weight: 600; display: block; margin-bottom: 0.5rem; }
-.profile-visibility-group div { margin-bottom: 0.3rem; }
-.profile-visibility-group input[type="radio"] { margin-right: 0.5rem; }
-#username-setup-error { margin-top: 1rem; }
-
-/* --- Error Message Styles --- */
-.error-message { color: var(--error-color); font-size: 0.9rem; padding: 0.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; border-radius: 4px; display: none; text-align: center; }
-.error-message.comment-error { text-align: left; padding: 0.2rem 0; margin-top: 0.2rem; }
-#create-post-error, #profile-error-message { margin-bottom: 1rem; }
-.comment-error { margin-top: 0.2rem; margin-bottom: 0.5rem; }
-
-/* --- Filter Buttons --- */
-.filter-options { margin-bottom: 1rem; text-align: center; }
-.filter-options button { padding: 0.5rem 1rem; margin: 0 0.25rem; border: 1px solid var(--border-color); background-color: transparent; color: var(--placeholder-text-color); border-radius: 15px; font-size: 0.9rem; transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
-.filter-options button.active { background-color: var(--accent-color); color: var(--accent-text-color); border-color: var(--accent-color); font-weight: 500; }
-
-/* --- Post Creation Form --- */
-#create-post-form textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid var(--border-color); border-radius: 5px; font-size: 1rem; line-height: 1.5; background-color: var(--background-color); color: var(--text-color); resize: vertical; transition: background-color 0.2s ease-out, border-color 0.2s ease-out, color 0.2s ease-out; min-height: 100px; }
-#create-post-form textarea::placeholder { color: var(--placeholder-text-color); }
-#create-post-form button[type="submit"] { padding: 0.75rem 1.5rem; background-color: var(--button-bg-color); color: var(--button-text-color); border: none; border-radius: 5px; font-size: 1rem; font-weight: 500; display: block; width: 100%; margin-top: 10px; transition: background-color 0.2s, opacity 0.2s; }
-#create-post-form button[type="submit"]:hover { opacity: 0.9; }
-#char-counter { font-size: 0.85rem; color: var(--placeholder-text-color); text-align: right; margin-top: -5px; margin-bottom: 10px; }
-
-/* --- Post Card Styles --- */
-.post-card { background-color: var(--card-bg-color); border: 1px solid var(--border-color); padding: 1rem; margin-bottom: 1rem; border-radius: 8px; transition: background-color 0.2s ease-out, border-color 0.2s ease-out; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-body.dark-mode .post-card { box-shadow: 0 1px 3px rgba(255,255,255,0.05); }
-.post-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--placeholder-text-color); }
-.post-username { font-weight: 600; color: var(--text-color); margin-right: 10px; }
-.post-text { margin-bottom: 1rem; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
-.post-actions { display: flex; gap: 1rem; align-items: center; border-top: 1px solid var(--border-color); padding-top: 0.75rem; margin-top: 0.5rem; transition: border-color 0.2s ease-out; }
-.post-actions .icon-button { font-size: 1rem; color: var(--nav-icon-color); display: flex; align-items: center; gap: 0.3rem; padding: 5px 0; transition: color 0.2s; }
-.post-actions .icon-button:hover { color: var(--accent-color); }
-.post-actions .delete-button { margin-left: auto; color: var(--error-color) !important; font-size: 1.1rem; }
-.post-actions .delete-button:hover { opacity: 0.8; }
-.like-count, .comment-count { font-size: 0.9em; font-weight: 400; }
-.post-actions .like-button.liked .like-icon { color: red; font-weight: bold; }
-
-/* --- Comment Section Styles --- */
-.comments-section { margin-top: 1.5rem; padding: 1rem; border-top: 2px solid var(--border-color); background-color: var(--comment-section-bg); border-radius: 0 0 8px 8px; margin-left: -1rem; margin-right: -1rem; margin-bottom: -1rem; transition: border-color 0.2s ease-out, background-color 0.2s ease-out; }
-.comment-form { margin-bottom: 1rem; }
-.comment-input-group { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
-.comment-input { flex-grow: 1; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 15px; font-size: 0.9rem; background-color: var(--background-color); color: var(--text-color); transition: background-color 0.2s ease-out, border-color 0.2s ease-out, color 0.2s ease-out; }
-.comment-input::placeholder { color: var(--placeholder-text-color); }
-.comment-submit-button { padding: 0.5rem 0.75rem; background-color: var(--accent-color); color: var(--accent-text-color); border: none; border-radius: 15px; font-size: 0.9rem; cursor: pointer; white-space: nowrap; transition: background-color 0.2s, opacity 0.2s; }
-.comment-submit-button:hover { opacity: 0.9; }
-.comment-submit-button:disabled { background-color: grey; cursor: not-allowed; opacity: 0.6; }
-
-
-
-/* *** NEW: Comment Sort Options *** */
-.comment-sort-options {
-    margin-bottom: 1rem;
+/* --- Header --- */
+#app-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--header-height);
+    background-color: var(--surface-transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.8rem;
-    text-align: left; /* Align buttons left */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.25rem;
+    z-index: 50;
+    transition: all 0.2s ease;
 }
-.comment-sort-button {
-    padding: 0.3rem 0.8rem;
-    margin-right: 0.5rem;
-    border: 1px solid var(--border-color);
-    background-color: transparent;
-    color: var(--placeholder-text-color);
-    border-radius: 12px;
-    font-size: 0.8rem; /* Smaller than feed filters */
+
+#app-header h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    letter-spacing: -0.025em;
+}
+
+/* --- Main Content --- */
+#app-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: calc(var(--header-height) + 1rem) 1rem calc(var(--nav-height) + 1rem);
+    /* Space for header & nav */
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-tertiary) transparent;
+}
+
+/* Custom Scrollbar */
+#app-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+#app-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#app-content::-webkit-scrollbar-thumb {
+    background-color: var(--border-hover);
+    border-radius: 20px;
+}
+
+/* --- Bottom Nav --- */
+#bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--nav-height);
+    background-color: var(--surface-transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    z-index: 50;
+    padding: 0 1rem;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-button {
+    background: none;
+    border: none;
     cursor: pointer;
-    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    color: var(--text-tertiary);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    flex-shrink: 0;
 }
-.comment-sort-button.active {
-    background-color: var(--accent-color);
-    color: var(--accent-text-color);
-    border-color: var(--accent-color);
+
+.nav-button:active {
+    transform: scale(0.9);
+}
+
+.nav-button.active {
+    color: var(--primary-color);
+}
+
+.nav-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0px;
+    width: 4px;
+    height: 4px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    box-shadow: 0 -2px 10px var(--primary-color);
+}
+
+.nav-button.create-button {
+    color: var(--surface-color);
+    background-color: var(--primary-color);
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    flex: 0 0 48px;
+    /* Reset flex */
+    font-size: 1.75rem;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    margin-bottom: 8px;
+    /* Raise it slightly */
+}
+
+/* --- Cards & Posts --- */
+.post-card {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.post-author {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+}
+
+.post-time {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
     font-weight: 500;
 }
-.comment-sort-button:hover:not(.active) {
-     border-color: var(--text-color);
-     color: var(--text-color);
+
+.post-text {
+    font-size: 1rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
+.post-actions {
+    display: flex;
+    gap: 1.25rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.75rem;
+    color: var(--text-secondary);
+}
 
-/* --- Displayed Comments List Styles --- */
-.comments-list { margin-top: 0; max-height: 250px; overflow-y: auto; padding-right: 5px; }
-.comment-item {
+.post-actions .action-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--radius-full);
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.post-actions .action-btn:hover {
+    background-color: var(--background-color);
+    /* Subtle hover bg */
+    color: var(--text-primary);
+}
+
+.post-actions .like-btn:hover,
+.post-actions .like-btn.liked {
+    color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.08);
+}
+
+.post-actions .comment-btn:hover {
+    color: var(--primary-color);
+    background-color: var(--primary-light);
+}
+
+.post-actions .delete-btn {
+    margin-left: auto;
+    color: var(--text-tertiary);
+    padding: 0.4rem;
+    /* Icon only usually */
+}
+
+.post-actions .delete-btn:hover {
+    color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* --- Buttons & Inputs --- */
+.confirm-button,
+button[type="submit"] {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    font-size: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
+}
+
+.confirm-button:hover,
+button[type="submit"]:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px -1px rgba(99, 102, 241, 0.5);
+}
+
+.confirm-button:active,
+button[type="submit"]:active {
+    transform: translateY(0);
+}
+
+input[type="text"],
+input[type="password"],
+textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--background-color);
+    /* Slight contrast container bg */
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+input:focus,
+textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    background-color: var(--surface-color);
+}
+
+/* --- Modals --- */
+.modal[hidden] {
+    display: none !important;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 1rem;
+    animation: fadeInModal 0.2s ease-out;
+}
+
+@keyframes fadeInModal {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    background-color: var(--surface-color);
+    padding: 2rem;
+    border-radius: 1.5rem;
+    /* Larger radius for modal */
+    width: 100%;
+    max-width: 400px;
+    box-shadow: var(--shadow-lg);
     position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-content h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.modal-content p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* --- Generic Utils --- */
+.icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    border-radius: var(--radius-full);
+    transition: all 0.2s ease;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-button svg {
+    stroke: currentColor;
+}
+
+.icon-button:hover {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+}
+
+/* --- Comments Section --- */
+.comments-section {
+    background-color: var(--background-color);
+    border-top: 1px solid var(--border-color);
+    padding: 1.25rem;
+    margin: 1rem -1.25rem -1.25rem;
+    /* Full bleed in card */
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+}
+
+.comment-input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.comment-input {
+    border-radius: var(--radius-full);
+    padding-left: 1.25rem;
+}
+
+.comment-submit-button {
+    border-radius: var(--radius-full);
+    padding: 0 1.25rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.comment-item {
     border-bottom: 1px solid var(--border-color);
-    padding: 0.75rem 0;
-    transition: border-color 0.2s ease-out, background-color 0.5s ease-out; /* Added background transition */
-}
-.comment-item:last-child { border-bottom: none; }
-
-/* *** NEW: Highlight style for scrolled-to comment *** */
-.comment-item.highlighted {
-    background-color: var(--note-bg-color); /* Use note background for highlight */
-    border-radius: 4px; /* Optional rounded corners for highlight */
+    padding: 1rem 0;
 }
 
-.comment-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.3rem; padding-right: 25px; }
-.comment-author { font-weight: 600; font-size: 0.9em; margin-right: 0.5rem; }
-.comment-timestamp { font-size: 0.75em; color: var(--placeholder-text-color); white-space: nowrap; }
-.comment-text { font-size: 0.95em; line-height: 1.4; word-wrap: break-word; color: var(--text-color); white-space: pre-wrap; margin-bottom: 0.5rem; }
-.comments-list p { color: var(--placeholder-text-color); padding: 0.5rem 0; text-align: center; font-style: italic; }
-.comment-item.owner-comment .comment-author { display: inline-flex; align-items: center; gap: 0.4em; font-weight: 700; color: var(--accent-color); }
-.author-badge { display: inline-block; font-size: 0.7em; padding: 1px 5px; border-radius: 4px; background-color: var(--author-badge-bg); color: var(--author-badge-text); text-transform: uppercase; font-weight: 600; line-height: 1.2; margin-left: 0; }
-.comment-delete-button { position: absolute; top: 4px; right: 0px; background: none; border: none; color: var(--error-color); cursor: pointer; font-size: 1rem; padding: 2px 4px; line-height: 1; opacity: 0.6; transition: opacity 0.2s; }
-.comment-delete-button:hover { opacity: 1; }
-.comment-actions { display: flex; align-items: center; gap: 0.8rem; margin-top: 0.25rem; }
-.comment-upvote-button { background: none; border: none; padding: 2px 4px; cursor: pointer; color: var(--nav-icon-color); display: inline-flex; align-items: center; gap: 0.2rem; font-size: 0.85em; transition: color 0.2s ease-out; }
-.comment-upvote-button:hover { color: var(--accent-color); }
-.comment-upvote-button .upvote-icon { font-size: 1.1em; }
-.comment-upvote-button.upvoted { color: var(--accent-color); font-weight: bold; }
-.comment-reply-button { background: none; border: none; padding: 2px 4px; cursor: pointer; color: var(--nav-icon-color); font-size: 0.85em; font-weight: 500; transition: color 0.2s ease-out; }
-.comment-reply-button:hover { color: var(--accent-color); text-decoration: underline; }
-.reply-form-container { margin-top: 0.75rem; margin-left: 1.5rem; padding-left: 0.75rem; border-left: 2px solid var(--border-color); }
-.reply-form-container form { display: flex; flex-direction: column; gap: 0.5rem; }
-.reply-input { width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.9rem; background-color: var(--background-color); color: var(--text-color); resize: vertical; min-height: 40px; }
-.reply-input::placeholder { color: var(--placeholder-text-color); }
-.reply-form-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
-.reply-submit-button, .reply-cancel-button { padding: 0.3rem 0.8rem; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer; }
-.reply-submit-button { background-color: var(--accent-color); color: var(--accent-text-color); }
-.reply-cancel-button { background-color: transparent; color: var(--placeholder-text-color); border: 1px solid var(--placeholder-text-color); }
-.reply-cancel-button:hover { background-color: rgba(0, 0, 0, 0.05); }
-body.dark-mode .reply-cancel-button:hover { background-color: rgba(255, 255, 255, 0.08); }
-.reply-error { text-align: left; margin-top: 0; margin-bottom: 0.3rem; }
-.comment-replies { margin-top: 0.75rem; margin-left: 1.5rem; padding-left: 1rem; border-left: 2px solid var(--border-color); border-bottom: none; }
-.comment-replies > .comment-item { padding-top: 0.5rem; padding-bottom: 0.5rem; padding-left: 0; }
-.comment-replies > .comment-item:last-child { padding-bottom: 0; }
+.comment-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
 
+.comment-author {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.comment-text {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+/* --- Filter & Toggles --- */
+.filter-options {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-options button {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    border-radius: var(--radius-full);
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.filter-options button.active {
+    background-color: var(--text-primary);
+    /* Modern pill style black/white */
+    color: var(--surface-color);
+    border-color: var(--text-primary);
+}
+
+.filter-options button:hover:not(.active) {
+    background-color: var(--border-color);
+}
+
+/* --- Settings Toggle --- */
+.switch {
+    width: 48px;
+    height: 28px;
+}
+
+.slider.round:before {
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+}
+
+input:checked+.slider {
+    background-color: var(--primary-color);
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
+}
+
+/* --- Offline --- */
+.offline-indicator {
+    background-color: var(--warning-color);
+    color: white;
+    text-align: center;
+    padding: 0.5rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
 
 /* --- Notification List Styles --- */
-#notifications-list { padding: 0; margin: 0; }
-.notification-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0.5rem; border-bottom: 1px solid var(--border-color); transition: border-color 0.2s ease-out, background-color 0.2s ease-out; cursor: pointer; }
-.notification-item:last-child { border-bottom: none; }
-.notification-item:hover { background-color: var(--notification-hover-bg); }
-.notification-item.unread { background-color: var(--notification-unread-bg); }
-.notification-item.unread:hover { background-color: rgba(92, 107, 192, 0.12); }
-body.dark-mode .notification-item.unread:hover { background-color: rgba(126, 87, 194, 0.18); }
-.notification-icon { font-size: 1.2rem; padding-top: 2px; flex-shrink: 0; width: 25px; text-align: center; }
-.notification-content { flex-grow: 1; font-size: 0.95rem; line-height: 1.4; }
-.notification-message { margin-bottom: 0.2rem; }
-.notification-message strong { font-weight: 600; }
-.notification-context-area { font-size: 0.85em; color: var(--placeholder-text-color); line-height: 1.3; }
-.notification-context { display: block; margin-top: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; }
-.notification-context.post-context { margin-top: 4px; font-style: italic; }
-.notification-timestamp { font-size: 0.75rem; color: var(--placeholder-text-color); white-space: nowrap; flex-shrink: 0; padding-top: 4px; margin-left: 0.5rem; }
-#notifications-list p { color: var(--placeholder-text-color); padding: 1rem 0.5rem; text-align: center; font-style: italic; }
+.notifications-list {
+    background-color: var(--surface-color);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
 
-/* --- Loading Spinner Styles --- */
-.loading-spinner-container { display: flex; justify-content: center; align-items: center; padding: 2rem 1rem; min-height: 100px; }
-.loading-spinner { border: 4px solid rgba(0, 0, 0, 0.1); border-left-color: var(--accent-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
-body.dark-mode .loading-spinner { border: 4px solid rgba(255, 255, 255, 0.1); border-left-color: var(--accent-color); }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.comments-list .loading-spinner-container { min-height: 40px; padding: 0.5rem; }
-.comments-list .loading-spinner { width: 20px; height: 20px; border-width: 3px; }
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
 
-/* --- Profile Page Specifics --- */
-.profile-info-header { padding: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); }
-#profile-username-display { word-break: break-all; font-size: 1.2em; color: var(--accent-color); margin-bottom: 0.5rem; }
-.profile-visibility-settings { text-align: left; margin-top: 0.5rem; margin-bottom: 1rem; padding: 0.8rem; border: 1px dashed var(--border-color); border-radius: 5px; background-color: var(--comment-section-bg); }
-.profile-visibility-settings legend { font-weight: 600; margin-bottom: 0.5rem; padding: 0 0.3rem; font-size: 0.95em; }
-.profile-visibility-settings div { margin-bottom: 0.3rem; display: flex; align-items: center; }
-.profile-visibility-settings input[type="radio"] { margin-right: 0.6rem; flex-shrink: 0; width: 16px; height: 16px; }
-.profile-visibility-settings label { font-size: 0.95em; cursor: pointer; }
-#visibility-status-message { font-size: 0.85em; font-style: italic; color: var(--placeholder-text-color); margin-top: 0.5rem; min-height: 1.1em; }
+.notification-item:last-child {
+    border-bottom: none;
+}
 
-/* --- Centered text helpers --- */
-.text-center { text-align: center; }
-.padding-1 { padding: 1rem; }
+.notification-item:hover {
+    background-color: var(--background-color);
+}
+
+.notification-item.unread {
+    background-color: var(--primary-light);
+}
+
+.notification-item.unread:hover {
+    background-color: rgba(224, 231, 255, 0.8);
+}
+
+.notification-item.unread::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background-color: var(--primary-color);
+}
+
+/* Notification Type Icons */
+.notif-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background-color: var(--background-color);
+}
+
+.notif-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Like notification - red */
+.notif-like .notif-icon {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: var(--error-color);
+}
+
+.notif-like .notif-icon svg {
+    fill: var(--error-color);
+}
+
+/* Comment notification - blue */
+.notif-comment .notif-icon {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+}
+
+.notif-comment .notif-icon svg {
+    stroke: var(--primary-color);
+}
+
+/* Reply notification - green */
+.notif-reply .notif-icon {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: var(--success-color);
+}
+
+.notif-reply .notif-icon svg {
+    stroke: var(--success-color);
+}
+
+/* Notification Content */
+.notif-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notif-content p {
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+}
+
+.notif-content strong {
+    font-weight: 600;
+}
+
+.notif-content small {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    margin-top: 0.25rem;
+}
+
+/* --- Highlight --- */
+.comment-item.highlighted {
+    background-color: rgba(255, 235, 59, 0.15);
+    /* Keep distinct */
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(255, 235, 59, 0.5);
+}
+
+/* --- Auth Modal Specifics --- */
+.auth-switch {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.auth-switch a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.error-message {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+/* --- Create Post View --- */
+.create-post-container {
+    background-color: var(--surface-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+}
+
+.create-post-container textarea {
+    width: 100%;
+    min-height: 120px;
+    max-height: 200px;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.6;
+    resize: vertical;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+.create-post-container textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    background-color: var(--surface-color);
+}
+
+.create-post-container textarea::placeholder {
+    color: var(--text-tertiary);
+}
+
+.char-count {
+    text-align: right;
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    margin: 0.5rem 0 1rem;
+    font-weight: 500;
+}
+
+.char-count.warning {
+    color: var(--warning-color);
+}
+
+.char-count.limit {
+    color: var(--error-color);
+}
+
+/* --- Profile View --- */
+.profile-header {
+    background-color: var(--surface-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 1.5rem;
+}
+
+.profile-avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    text-transform: uppercase;
+}
+
+.profile-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.profile-header>p {
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+    margin-bottom: 0.75rem;
+}
+
+/* Profile Hearts Display */
+.profile-header .action-btn {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.profile-header .action-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: var(--error-color);
+}
+
+.profile-header .action-btn.liked {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: var(--error-color);
+    color: var(--error-color);
+}
+
+/* Profile Visibility Control */
+.profile-visibility-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.profile-visibility-control span {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.profile-visibility-control strong {
+    color: var(--text-primary);
+}
+
+.small-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.4rem 0.9rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+}
+
+.small-button:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(99, 102, 241, 0.4);
+}
+
+.small-button:active {
+    transform: translateY(0);
+}
+
+/* Profile Posts Section */
+.profile-posts {
+    background-color: var(--surface-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.profile-posts h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-posts .post-card {
+    margin-bottom: 1rem;
+}
+
+.profile-posts .post-card:last-child {
+    margin-bottom: 0;
+}
+
+/* Private Profile Message */
+.private-profile-message {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-tertiary);
+    font-size: 1rem;
+}
+
+.no-posts-message {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-tertiary);
+    font-size: 0.95rem;
+}
+
+/* --- Input Group Styling --- */
+.input-group {
+    margin-bottom: 1rem;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.4rem;
+}
+
+.input-group small {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    margin-top: 0.3rem;
+}
+
+/* --- Profile Visibility Radio Group --- */
+.profile-visibility-group {
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: var(--background-color);
+    border-radius: var(--radius-md);
+}
+
+.profile-visibility-group>label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+}
+
+.profile-visibility-group>div {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-right: 1.5rem;
+}
+
+.profile-visibility-group input[type="radio"] {
+    accent-color: var(--primary-color);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.profile-visibility-group div label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+/* --- Settings Modal Improvements --- */
+.setting-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.theme-switcher {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.theme-switcher label {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.about-section h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.about-section p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-align: left;
+    margin-bottom: 0;
+}
+
+.logout-section {
+    padding-top: 1.5rem;
+}
+
+/* --- Close Button --- */
+.close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.5rem;
+    color: var(--text-tertiary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    transition: all 0.2s ease;
+}
+
+.close-button:hover {
+    background-color: var(--background-color);
+    color: var(--text-primary);
+}
+
+/* --- Toggle Switch Fix --- */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 28px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: 0.3s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.3s;
+    box-shadow: var(--shadow-sm);
+}
+
+.slider.round {
+    border-radius: 28px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* --- SVG Icon Styling --- */
+.nav-button svg,
+.icon-button svg {
+    display: block;
+}
+
+.nav-button.active svg {
+    stroke: var(--primary-color);
+}
+
+.action-btn svg {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+.like-btn.liked svg {
+    fill: var(--error-color);
+    stroke: var(--error-color);
+}
+
+.comment-btn svg {
+    stroke: currentColor;
+}
+
+.delete-btn svg {
+    stroke: currentColor;
+}
+
+/* Hearts Display in Profile */
+.hearts-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.hearts-display svg {
+    fill: var(--error-color);
+    stroke: none;
+}
+
+/* Cancel Reply Button */
+.cancel-reply-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary);
+    border-radius: var(--radius-full);
+    transition: all 0.2s ease;
+}
+
+.cancel-reply-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+}
+
+/* Private Profile Lock Icon */
+.private-profile-message svg {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.4rem;
+}

@@ -1,274 +1,783 @@
 // public/script.js
+
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Element Selectors ---
-    // ... (no changes) ...
-    const contentArea = document.getElementById('app-content');
+    // --- DOM Elements ---
+    const appContent = document.getElementById('app-content');
+    const bottomNav = document.getElementById('bottom-nav');
     const navButtons = document.querySelectorAll('.nav-button');
     const sectionTitle = document.getElementById('section-title');
-    const settingsButton = document.getElementById('settings-button');
-    const settingsModal = document.getElementById('settings-modal');
-    const closeSettingsButton = document.getElementById('close-settings-button');
-    const themeToggle = document.getElementById('theme-toggle');
-    const notificationNavButton = document.querySelector('.nav-button[data-section="notifications"]');
+    const offlineIndicator = document.getElementById('offline-indicator');
+
+    // Modals
     const ageConfirmModal = document.getElementById('age-confirm-modal');
     const confirmAgeButton = document.getElementById('confirm-age-button');
     const infoModal = document.getElementById('info-modal');
     const confirmInfoButton = document.getElementById('confirm-info-button');
-    const offlineIndicator = document.getElementById('offline-indicator');
-    const usernameSetupModal = document.getElementById('username-setup-modal');
-    const usernameInput = document.getElementById('username-input');
-    const regenerateUsernameButton = document.getElementById('regenerate-username-button');
-    const usernameStatus = document.getElementById('username-status');
-    const confirmUsernameButton = document.getElementById('confirm-username-button');
-    const usernameSetupError = document.getElementById('username-setup-error');
+    const authModal = document.getElementById('auth-modal');
+    const settingsModal = document.getElementById('settings-modal');
+    const settingsButton = document.getElementById('settings-button');
+    const closeSettingsButton = document.getElementById('close-settings-button');
+    const themeToggle = document.getElementById('theme-toggle');
+    const logoutButton = document.getElementById('logout-button');
 
-    // --- State Variables ---
-    // ... (no changes) ...
+    // Auth Forms
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const switchToRegister = document.getElementById('switch-to-register');
+    const switchToLogin = document.getElementById('switch-to-login');
+    const loginError = document.getElementById('login-error');
+    const registerError = document.getElementById('register-error');
+
+    // --- State ---
     let currentUsername = null;
+    let authToken = null; // JWT Token
     let currentSection = 'home';
     const USERNAME_KEY = 'dailyTalksUsername';
+    const TOKEN_KEY = 'dailyTalksToken';
     const AGE_CONFIRM_KEY = 'dailyTalksAgeConfirmed';
     const INFO_SEEN_KEY = 'dailyTalksInfoSeen';
-    let usernameCheckTimeout;
+    const THEME_KEY = 'dailyTalksTheme';
 
-    // --- Helper: Loading Spinner ---
-    function showLoadingSpinner(containerElement) { if (containerElement) { containerElement.innerHTML = ` <div class="loading-spinner-container"> <div class="loading-spinner"></div> </div>`; } }
+    // --- API Base URL ---
+    const API_BASE_URL = '/api';
 
-    // --- Initialization & Setup Flow ---
-    // ... (no changes) ...
-    function initializeApp() { console.log("FUNC: initializeApp"); setupEventListeners(); setupTheme(); updateOnlineStatus(); checkInitialSetup(); registerServiceWorker(); }
-    function checkInitialSetup() { const storedUsername = localStorage.getItem(USERNAME_KEY); if (storedUsername) { console.log(`FUNC: checkInitialSetup - Found existing user: ${storedUsername}`); currentUsername = storedUsername; checkAgeConfirmation(); } else { console.log("FUNC: checkInitialSetup - No username found. Need setup."); checkAgeConfirmation(); } }
-    function checkAgeConfirmation() { console.log("FUNC: checkAgeConfirmation"); const isConfirmed = localStorage.getItem(AGE_CONFIRM_KEY) === 'true'; if (isConfirmed) { console.log("Age already confirmed."); checkInfoModal(); } else { console.log("Age not confirmed. Showing modal."); contentArea.innerHTML = '<p class="text-center padding-1">Please confirm your age to continue.</p>'; if (ageConfirmModal) { ageConfirmModal.hidden = false; } else { console.error("Age confirmation modal element not found!"); alert("Error: Could not display age confirmation."); } } }
-    function handleAgeConfirmation() { console.log("FUNC: handleAgeConfirmation"); localStorage.setItem(AGE_CONFIRM_KEY, 'true'); if (ageConfirmModal) { ageConfirmModal.hidden = true; } else { console.error("Age confirmation modal not found when trying to hide it."); } checkInfoModal(); }
-    function checkInfoModal() { console.log("FUNC: checkInfoModal"); const infoSeen = localStorage.getItem(INFO_SEEN_KEY) === 'true'; if (infoSeen) { console.log("Info modal already seen."); checkUsernameSetup(); } else { console.log("Info modal not seen. Showing."); contentArea.innerHTML = '<p class="text-center padding-1">Please review the information below.</p>'; if (infoModal) { infoModal.hidden = false; } else { console.error("Info modal element not found!"); alert("Error: Could not display welcome information."); checkUsernameSetup(); } } }
-    function handleInfoConfirmation() { console.log("FUNC: handleInfoConfirmation"); localStorage.setItem(INFO_SEEN_KEY, 'true'); if (infoModal) { infoModal.hidden = true; } else { console.error("Info modal not found when trying to hide it."); } checkUsernameSetup(); }
-    function checkUsernameSetup() { console.log("FUNC: checkUsernameSetup"); const storedUser = localStorage.getItem(USERNAME_KEY); if (storedUser) { currentUsername = storedUser; console.log(`Username '${currentUsername}' confirmed.`); startAppFlow(); } else { console.log("Username not set. Showing setup modal."); contentArea.innerHTML = '<p class="text-center padding-1">Please choose a username.</p>'; if (usernameSetupModal && usernameInput) { usernameInput.value = generateSimpleUsername(); handleUsernameInput(); usernameSetupModal.hidden = false; } else { console.error("Username setup modal or input not found!"); alert("Error: Could not display username setup."); } } }
-    function startAppFlow() { console.log("FUNC: startAppFlow - Starting main application flow."); contentArea.innerHTML = ''; loadInitialView(); fetchAndUpdateUnreadIndicator(); }
+    // --- SVG Icons ---
+    const ICONS = {
+        heartFilled: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>',
+        heartOutline: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>',
+        comment: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>',
+        reply: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>',
+        trash: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>',
+        close: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>',
+        lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>'
+    };
 
-    // --- Event Listeners Setup ---
-    function setupEventListeners() { console.log("FUNC: setupEventListeners"); navButtons.forEach(button => { button.addEventListener('click', handleNavigation); }); settingsButton.addEventListener('click', openSettingsModal); if(closeSettingsButton) closeSettingsButton.addEventListener('click', closeSettingsModal); else console.warn("Close settings button not found"); if(settingsModal) settingsModal.addEventListener('click', handleModalOverlayClick); else console.warn("Settings modal not found"); if(themeToggle) themeToggle.addEventListener('change', handleThemeToggle); else console.warn("Theme toggle not found"); if (confirmAgeButton) { confirmAgeButton.addEventListener('click', handleAgeConfirmation); } else { console.warn("Confirm age button not found"); } if (confirmInfoButton) { confirmInfoButton.addEventListener('click', handleInfoConfirmation); } else { console.warn("Confirm info button not found"); } if (usernameInput) { usernameInput.addEventListener('input', debounce(handleUsernameInput, 500)); } else { console.warn("Username input not found"); } if (regenerateUsernameButton) { regenerateUsernameButton.addEventListener('click', handleRegenerateUsername); } else { console.warn("Regenerate username button not found"); } if (confirmUsernameButton) { confirmUsernameButton.addEventListener('click', handleUsernameConfirmation); } else { console.warn("Confirm username button not found"); } window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); }
+    // --- Initialization ---
+    init();
 
-    // --- Helper: Error Display & Clear ---
-    function displayError(message, elementId = null) { let errorDiv = null; if (elementId) { errorDiv = document.getElementById(elementId); } if (!errorDiv) { errorDiv = contentArea.querySelector('.error-message:not(.comment-error):not(.reply-error)'); if (errorDiv) { console.log(`Displaying error in generic container: #${errorDiv.id || '(no id)'}`); } } if (errorDiv) { errorDiv.textContent = message; errorDiv.style.display = 'block'; errorDiv.style.color = 'var(--error-color)'; errorDiv.style.textAlign = 'center'; errorDiv.style.padding = '0.5rem'; errorDiv.style.margin = '0.5rem 0'; if (errorDiv.classList.contains('comment-error') || errorDiv.classList.contains('reply-error') ) { errorDiv.style.textAlign = 'left'; } } else { console.error("Could not find a suitable error display element for:", message); alert(`Error: ${message}`); } }
-    function clearError(elementId = null) { let errorDiv = null; if (elementId) { errorDiv = document.getElementById(elementId); } else { const genericErrors = contentArea.querySelectorAll('.error-message:not([id*="-error-"])'); genericErrors.forEach(el => { el.textContent = ''; el.style.display = 'none'; }); return; } if (errorDiv) { errorDiv.textContent = ''; errorDiv.style.display = 'none'; } }
+    function init() {
+        loadTheme();
+        checkOfflineStatus();
+        window.addEventListener('online', checkOfflineStatus);
+        window.addEventListener('offline', checkOfflineStatus);
 
-    // --- Navigation Logic ---
-    function handleNavigation(event) { clearError(); const button = event.currentTarget; const section = button.dataset.section; navigateTo(section); navButtons.forEach(btn => btn.classList.remove('active')); button.classList.add('active'); }
-    // *** MODIFIED: Handle data object for postId and commentIdToHighlight ***
-    function navigateTo(section, data = null) {
-        let postId = null;
-        let commentIdToHighlight = null;
-
-        // Handle if data is just postId string or an object
-        if (typeof data === 'string') {
-            postId = data; // Assumed postId if string
-        } else if (data && typeof data === 'object') {
-            postId = data.postId;
-            commentIdToHighlight = data.commentIdToHighlight;
+        // Check Age Confirmation
+        if (!localStorage.getItem(AGE_CONFIRM_KEY)) {
+            ageConfirmModal.hidden = false;
+        } else {
+            checkInfoSeen();
         }
-
-        console.log(`FUNC: navigateTo section: ${section}`, postId ? `postId: ${postId}` : '', commentIdToHighlight ? `highlight: ${commentIdToHighlight}`: '');
-        currentSection = section;
-        switch (section) { case 'home': sectionTitle.textContent = 'Home'; break; case 'notifications': sectionTitle.textContent = 'Notifications'; break; case 'create': sectionTitle.textContent = 'Create Post'; break; case 'profile': sectionTitle.textContent = 'My Posts'; break; case 'single-post': sectionTitle.textContent = 'Post Details'; break; default: sectionTitle.textContent = 'Daily Talk\'s'; }
-
-        contentArea.innerHTML = ''; // Clear content
-
-        switch (section) {
-            case 'home': loadHomePage(); break;
-            case 'notifications': loadNotificationsPage(); break;
-            case 'create': loadCreatePage(); break;
-            case 'profile': loadProfilePage(); break;
-            case 'single-post':
-                if (postId) {
-                     loadSinglePostPage(postId, commentIdToHighlight); // Pass highlight ID
-                } else { console.error("NavigateTo 'single-post' called without postId."); contentArea.innerHTML = '<p class="text-center padding-1">Cannot load post: ID missing.</p>'; }
-                break;
-            default: console.error(`Unknown section: ${section}`); contentArea.innerHTML += '<p class="text-center padding-1">Page not found.</p>';
-        }
-        if (section !== 'notifications') { fetchAndUpdateUnreadIndicator(); }
     }
 
-    // --- Page Loading Functions ---
-    function loadHomePage() { console.log("FUNC: loadHomePage"); contentArea.innerHTML = ` <h2>Home Feed</h2> <div id="home-error-message" class="error-message" style="display: none;"></div> <div class="filter-options" id="filter-options"> <button class="filter-button active" data-filter="latest">Latest</button> <button class="filter-button" data-filter="popular">Popular</button> </div> <div id="feed-container"></div>`; document.querySelectorAll('#filter-options .filter-button').forEach(button => { button.addEventListener('click', handleFilterClick); }); fetchAndDisplayPosts('latest'); }
-    function loadNotificationsPage() { console.log("FUNC: loadNotificationsPage"); contentArea.innerHTML = ` <h2>Notifications</h2> <div id="notifications-error-message" class="error-message" style="display: none;"></div> <div id="notifications-list"></div>`; fetchAndDisplayNotifications(); }
-    function loadCreatePage() { console.log("FUNC: loadCreatePage"); contentArea.innerHTML = ` <h2>Create Post</h2> <form id="create-post-form"> <div id="create-post-error" class="error-message" style="display: none;"></div> <textarea id="post-text-input" name="text" rows="8" placeholder="Share how your day went..." required maxlength="1000"></textarea> <div id="char-counter" class="char-counter">0/1000</div> <button type="submit">Post</button> </form>`; const textarea = document.getElementById('post-text-input'); const charCounter = document.getElementById('char-counter'); if (textarea && charCounter) { textarea.addEventListener('input', () => { const count = textarea.value.length; charCounter.textContent = `${count}/1000`; }); } const form = document.getElementById('create-post-form'); if(form) { form.addEventListener('submit', handlePostSubmit); } }
-    async function loadProfilePage() { console.log("FUNC: loadProfilePage"); const usernameToShow = currentUsername || 'Loading...'; const errorId = 'profile-error-message'; clearError(errorId); contentArea.innerHTML = ` <div class="profile-info-header"> <h2>My Posts</h2> <p>Your temporary username: <strong id="profile-username-display">${usernameToShow}</strong></p> <div id="visibility-controls-placeholder"></div> <div id="${errorId}" class="error-message" style="display: none;"></div> </div> <div id="my-posts-container"> </div>`; updateUsernameInUI(); const myPostsContainer = document.getElementById('my-posts-container'); if (myPostsContainer) { showLoadingSpinner(myPostsContainer); } else { console.error("Could not find #my-posts-container after setting innerHTML"); } if (currentUsername) { try { console.log(`API_CALL: Fetching profile details for ${currentUsername}`); const profileRes = await fetch(`/api/profiles/${currentUsername}`); const profileData = await profileRes.json(); if (!profileRes.ok) { throw new Error(profileData.message || `HTTP error ${profileRes.status}`); } const visibilityPlaceholder = document.getElementById('visibility-controls-placeholder'); if (visibilityPlaceholder) { visibilityPlaceholder.innerHTML = ` <fieldset class="profile-visibility-settings"> <legend>Profile Visibility</legend> <div> <input type="radio" id="vis-public" name="profileVisibility" value="public" ${profileData.isPublic ? 'checked' : ''}> <label for="vis-public">Public (Others can see your posts)</label> </div> <div> <input type="radio" id="vis-private" name="profileVisibility" value="private" ${!profileData.isPublic ? 'checked' : ''}> <label for="vis-private">Private (Only you can see your posts)</label> </div> <div id="visibility-status-message"></div> </fieldset>`; document.querySelectorAll('input[name="profileVisibility"]').forEach(radio => { radio.addEventListener('change', handleVisibilityChange); }); } await fetchAndDisplayMyPosts(); } catch (error) { console.error("Error loading profile page data:", error); displayError(`Failed to load profile settings: ${error.message}`, errorId); if (myPostsContainer) myPostsContainer.innerHTML = ''; } } else { displayError("Cannot load profile: Username missing.", errorId); if (myPostsContainer) myPostsContainer.innerHTML = ''; } }
+    function checkInfoSeen() {
+        if (!localStorage.getItem(INFO_SEEN_KEY)) {
+            infoModal.hidden = false;
+        } else {
+            checkAuth();
+        }
+    }
 
-    // *** MODIFIED: Accept commentIdToHighlight and implement scroll/highlight ***
-    async function loadSinglePostPage(postId, commentIdToHighlight = null) {
-        console.log(`FUNC: loadSinglePostPage for postId: ${postId}`, commentIdToHighlight ? `Highlight: ${commentIdToHighlight}` : '');
-        const errorId = 'single-post-error';
-        contentArea.innerHTML = `<div id="${errorId}" class="error-message" style="display: none;"></div><div id="single-post-container"></div>`;
-        const container = document.getElementById('single-post-container');
-        clearError(errorId);
-        if (!container) { console.error("Single post container not found after adding it!"); displayError("Internal error: Could not load post view.", errorId); return; }
-        showLoadingSpinner(container);
+    function checkAuth() {
+        const storedUsername = localStorage.getItem(USERNAME_KEY);
+        const storedToken = localStorage.getItem(TOKEN_KEY);
+
+        if (storedUsername && storedToken) {
+            currentUsername = storedUsername;
+            authToken = storedToken;
+            loadSection('home');
+        } else {
+            showAuthModal();
+        }
+    }
+
+    function showAuthModal() {
+        authModal.hidden = false;
+        loginForm.hidden = false;
+        registerForm.hidden = true;
+    }
+
+    // --- Event Listeners ---
+
+    // Age & Info Modals
+    confirmAgeButton.addEventListener('click', () => {
+        localStorage.setItem(AGE_CONFIRM_KEY, 'true');
+        ageConfirmModal.hidden = true;
+        checkInfoSeen();
+    });
+
+    confirmInfoButton.addEventListener('click', () => {
+        localStorage.setItem(INFO_SEEN_KEY, 'true');
+        infoModal.hidden = true;
+        checkAuth();
+    });
+
+    // Auth Modal Switching
+    switchToRegister.addEventListener('click', (e) => {
+        e.preventDefault();
+        loginForm.hidden = true;
+        registerForm.hidden = false;
+        loginError.style.display = 'none';
+        registerError.style.display = 'none';
+    });
+
+    switchToLogin.addEventListener('click', (e) => {
+        e.preventDefault();
+        registerForm.hidden = true;
+        loginForm.hidden = false;
+        loginError.style.display = 'none';
+        registerError.style.display = 'none';
+    });
+
+    // Login Submit
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+
         try {
-            const apiUrl = `/api/${postId}`;
-            console.log(`API_CALL: Fetching single post ${postId}`);
-            const response = await fetch(apiUrl);
-            const postData = await response.json();
-            if (!response.ok) { throw new Error(postData.message || `HTTP error ${response.status}`); }
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await response.json();
 
-            console.log(`API_RESP: Received post details for ${postId}`);
-            container.innerHTML = ''; // Clear spinner
-
-            const isOwnPost = postData.username === currentUsername;
-            container.appendChild(createPostElement(postData, isOwnPost));
-
-            const commentsSection = container.querySelector(`#comments-section-${postId}`);
-            const commentsListContainer = container.querySelector(`#comments-list-${postId}`);
-
-            if (commentsSection && commentsListContainer) {
-                commentsSection.hidden = false;
-                // Render comments first (default sort 'new')
-                renderComments(postData.comments, `comments-list-${postId}`, postData.username, 'new');
-
-                // --- Scroll and Highlight Logic ---
-                if (commentIdToHighlight) {
-                    // Needs a slight delay for the browser to finish rendering elements
-                    setTimeout(() => {
-                        const targetCommentElement = commentsListContainer.querySelector(`.comment-item[data-comment-id="${commentIdToHighlight}"]`);
-                        if (targetCommentElement) {
-                            console.log(`Highlighting and scrolling to comment: ${commentIdToHighlight}`);
-                            targetCommentElement.classList.add('highlighted-comment'); // Use specific class
-                            targetCommentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                            // Remove highlight after a delay
-                            setTimeout(() => {
-                                targetCommentElement.classList.remove('highlighted-comment');
-                            }, 2500); // 2.5 seconds highlight
-                        } else {
-                            console.warn(`Comment to highlight (${commentIdToHighlight}) not found in rendered list.`);
-                        }
-                    }, 100); // Small delay (100ms) - adjust if needed
-                }
-                // --- End Scroll and Highlight ---
-
+            if (response.ok) {
+                handleAuthSuccess(data.user.username, data.token);
             } else {
-                console.warn("Could not find comments section elements for single post view:", postId);
+                showError(loginError, data.message || 'Login failed.');
             }
         } catch (error) {
-            console.error(`Error fetching single post ${postId}:`, error);
-            if (container) container.innerHTML = ''; // Clear spinner on error
-            displayError(`Failed to load post: ${error.message}`, errorId);
+            showError(loginError, 'Network error. Please try again.');
+        }
+    });
+
+    // Register Submit
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('register-username').value.trim();
+        const password = document.getElementById('register-password').value;
+        const isPublic = document.querySelector('input[name="registerVisibility"]:checked').value === 'public';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, isPublic })
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                handleAuthSuccess(data.user.username, data.token);
+            } else {
+                showError(registerError, data.message || 'Registration failed.');
+            }
+        } catch (error) {
+            showError(registerError, 'Network error. Please try again.');
+        }
+    });
+
+    function handleAuthSuccess(username, token) {
+        currentUsername = username;
+        authToken = token;
+        localStorage.setItem(USERNAME_KEY, username);
+        localStorage.setItem(TOKEN_KEY, token);
+        authModal.hidden = true;
+        loadSection('home');
+    }
+
+    function showError(element, message) {
+        element.textContent = message;
+        element.style.display = 'block';
+    }
+
+    // Logout
+    if (logoutButton) {
+        logoutButton.addEventListener('click', () => {
+            logout();
+        });
+    }
+
+    function logout() {
+        localStorage.removeItem(USERNAME_KEY);
+        localStorage.removeItem(TOKEN_KEY);
+        currentUsername = null;
+        authToken = null;
+        settingsModal.hidden = true;
+        showAuthModal();
+    }
+
+    // Navigation
+    navButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const section = btn.dataset.section;
+            loadSection(section);
+        });
+    });
+
+    // Settings
+    settingsButton.addEventListener('click', () => { settingsModal.hidden = false; });
+    closeSettingsButton.addEventListener('click', () => { settingsModal.hidden = true; });
+
+    // Theme Toggle
+    themeToggle.addEventListener('change', () => {
+        if (themeToggle.checked) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem(THEME_KEY, 'dark');
+        } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem(THEME_KEY, 'light');
+        }
+    });
+
+    function loadTheme() {
+        const savedTheme = localStorage.getItem(THEME_KEY);
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.checked = true;
         }
     }
 
-
-    // --- API Interaction Functions ---
-    async function fetchAndDisplayPosts(filter = 'latest') { const errorId = 'home-error-message'; clearError(errorId); console.log(`API_CALL: fetchAndDisplayPosts (Home): ${filter}`); const feedContainer = document.getElementById('feed-container'); if (!feedContainer) return; showLoadingSpinner(feedContainer); try { const apiUrl = `/api/posts?sort=${filter}`; const response = await fetch(apiUrl); if (!response.ok) { let e = `HTTP error ${response.status}`; try { const d = await response.json(); e = d.message || e; } catch (_) {} throw new Error(e); } const posts = await response.json(); feedContainer.innerHTML = ''; if (posts && posts.length > 0) { console.log(`API_RESP: ${posts.length} posts.`); posts.forEach(post => { feedContainer.appendChild(createPostElement(post)); }); } else { console.log("API_RESP: No posts."); feedContainer.innerHTML = '<p class="text-center padding-1" style="font-style: italic;">No posts yet. Be the first!</p>'; } } catch (error) { console.error("Error fetch posts:", error); if (feedContainer) feedContainer.innerHTML = ''; displayError(`Failed load posts: ${error.message}`, errorId); } }
-    async function fetchAndDisplayMyPosts() { const myPostsContainer = document.getElementById('my-posts-container'); const errorId = 'profile-error-message'; if (!myPostsContainer) { console.error("My posts container not found"); return; } if (!currentUsername) { console.warn("Cannot fetch my posts, username not set."); myPostsContainer.innerHTML = '<p class="text-center padding-1">Could not identify username.</p>'; return; } try { const apiUrl = `/api/my-posts?username=${encodeURIComponent(currentUsername)}`; const response = await fetch(apiUrl); if (!response.ok) { let e = `HTTP error ${response.status}`; try { const d = await response.json(); e = d.message || e; } catch (_) {} throw new Error(e); } const myPosts = await response.json(); myPostsContainer.innerHTML = ''; if (myPosts && myPosts.length > 0) { console.log(`API_RESP: ${myPosts.length} posts for ${currentUsername}.`); myPosts.forEach(post => { myPostsContainer.appendChild(createPostElement(post, true)); }); } else { console.log(`API_RESP: No posts for ${currentUsername}.`); myPostsContainer.innerHTML = '<p class="text-center padding-1" style="font-style: italic;">You haven\'t posted anything yet.</p>'; } } catch (error) { console.error("Error fetch my posts:", error); if (myPostsContainer) myPostsContainer.innerHTML = ''; displayError(`Failed load your posts: ${error.message}`, errorId); } }
-    async function fetchAndDisplayNotifications() { const errorId = 'notifications-error-message'; clearError(errorId); console.log("API_CALL: fetchAndDisplayNotifications"); const notificationsList = document.getElementById('notifications-list'); if (!notificationsList) { console.error("Notifications list container not found"); return; } if (!currentUsername) { console.warn("Cannot fetch notifications, username not set."); notificationsList.innerHTML = '<p class="text-center padding-1">Could not identify username to fetch notifications.</p>'; return; } showLoadingSpinner(notificationsList); try { const apiUrl = `/api/notifications?username=${encodeURIComponent(currentUsername)}`; const response = await fetch(apiUrl); if (!response.ok) { let e = `HTTP error ${response.status}`; try { const d = await response.json(); e = d.message || e; } catch (_) {} throw new Error(e); } const notifications = await response.json(); notificationsList.innerHTML = ''; if (notifications && notifications.length > 0) { console.log(`API_RESP: ${notifications.length} notifications for ${currentUsername}.`); notifications.forEach(notification => { notificationsList.appendChild(createNotificationElement(notification)); }); updateNotificationIndicator(0); } else { console.log(`API_RESP: No notifications for ${currentUsername}.`); notificationsList.innerHTML = '<p class="text-center padding-1" style="font-style: italic;">No new notifications.</p>'; updateNotificationIndicator(0); } } catch (error) { console.error("Error fetching notifications:", error); if (notificationsList) notificationsList.innerHTML = ''; displayError(`Failed to load notifications: ${error.message}`, errorId); updateNotificationIndicator(0); } }
-    async function fetchAndUpdateUnreadIndicator() { if (!currentUsername || !notificationNavButton) { if (!notificationNavButton) console.error("Notification nav button missing."); updateNotificationIndicator(0); return; } console.log("API_CALL: fetchAndUpdateUnreadIndicator"); try { const apiUrl = `/api/notifications/unread-count?username=${encodeURIComponent(currentUsername)}`; const response = await fetch(apiUrl); if (!response.ok) { console.error(`Error fetching unread count: ${response.status}`); updateNotificationIndicator(0); return; } const data = await response.json(); console.log(`API_RESP: Unread count: ${data.unreadCount}`); updateNotificationIndicator(data.unreadCount); } catch (error) { console.error("Network error fetching unread notification count:", error); updateNotificationIndicator(0); } }
-    function updateNotificationIndicator(count) { if (!notificationNavButton) return; const indicatorClass = 'has-unread'; const countValue = parseInt(count) || 0; if (countValue > 0) { notificationNavButton.classList.add(indicatorClass); notificationNavButton.setAttribute('aria-label', `Notifications (${countValue} unread)`); } else { notificationNavButton.classList.remove(indicatorClass); notificationNavButton.setAttribute('aria-label', 'Notifications'); } }
-
-    // --- UI Element Creation ---
-    function createPostElement(post, isProfilePage = false) { const postElement = document.createElement('div'); postElement.classList.add('post-card'); postElement.dataset.postId = post._id; const postId = post._id; const date = new Date(post.createdAt); const formattedDate = date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }); const userHasLiked = currentUsername && post.likes && post.likes.some(like => like.username === currentUsername); const likeButtonIcon = userHasLiked ? '♥' : '♡'; const likeButtonClass = userHasLiked ? 'like-button icon-button liked' : 'like-button icon-button'; const deleteButtonHTML = isProfilePage ? `<button class="delete-button icon-button" data-post-id="${postId}" aria-label="Delete Post">🗑️</button>` : ''; postElement.innerHTML = ` <div class="post-header"> <strong class="post-username"></strong> <span class="post-timestamp">${formattedDate}</span> </div> <p class="post-text"></p> <div class="post-actions"> <button class="${likeButtonClass}" data-post-id="${postId}" aria-label="Like Post"> <span class="like-icon">${likeButtonIcon}</span> <span class="like-count">${post.likeCount ?? 0}</span> </button> <button class="comment-button icon-button" data-post-id="${postId}" aria-label="Toggle Comments"> 💬 <span class="comment-count">${post.commentCount ?? 0}</span> </button> ${deleteButtonHTML} </div> <div class="comments-section" id="comments-section-${postId}" hidden> <form class="comment-form" data-post-id="${postId}"> <div class="comment-input-group"> <input type="text" class="comment-input" placeholder="Add a comment..." required maxlength="500"> <button type="submit" class="comment-submit-button">Send</button> </div> <div id="comment-error-${postId}" class="error-message comment-error" style="display: none;"></div> </form> <div class="comment-sort-options"> <button class="comment-sort-button active" data-sort="new" data-post-id="${postId}">Newest</button> <button class="comment-sort-button" data-sort="top" data-post-id="${postId}">Top</button> </div> <div class="comments-list" id="comments-list-${postId}"></div> </div>`; const usernameEl = postElement.querySelector('.post-username'); const textEl = postElement.querySelector('.post-text'); if (usernameEl) usernameEl.textContent = post.username; if (textEl) textEl.textContent = post.text; const likeButton = postElement.querySelector('.like-button'); if (likeButton) likeButton.addEventListener('click', handleLikeClick); const commentButton = postElement.querySelector('.comment-button'); if (commentButton) commentButton.addEventListener('click', handleCommentButtonClick); const commentForm = postElement.querySelector('.comment-form'); if (commentForm) commentForm.addEventListener('submit', handleCommentSubmit); if (isProfilePage) { const deleteButton = postElement.querySelector('.delete-button'); if (deleteButton) { deleteButton.addEventListener('click', handleDeleteClick); } } postElement.querySelectorAll('.comment-sort-button').forEach(button => { button.addEventListener('click', handleCommentSortClick); }); return postElement; }
-    function renderComments(comments, listContainerId, postOwnerUsername, sortBy = 'new') { const listContainer = document.getElementById(listContainerId); if (!listContainer) { console.error("Comment list container not found:", listContainerId); return; } listContainer.innerHTML = ''; const isPostOwnerViewing = currentUsername === postOwnerUsername; if (!comments || comments.length === 0) { listContainer.innerHTML = '<p style="font-style: italic; font-size: 0.9em; text-align: center; padding: 0.5rem 0;">No comments yet.</p>'; return; } const commentsById = {}; comments.forEach(comment => { commentsById[comment._id] = { ...comment, children: [] }; }); const nestedComments = []; comments.forEach(comment => { const commentNode = commentsById[comment._id]; if (comment.parentId && commentsById[comment.parentId]) { commentsById[comment.parentId].children.push(commentNode); } else { nestedComments.push(commentNode); } }); const ownerTopLevel = []; const otherTopLevel = []; nestedComments.forEach(commentNode => { (commentNode.username === postOwnerUsername) ? ownerTopLevel.push(commentNode) : otherTopLevel.push(commentNode); }); const sortByTimestampDesc = (a, b) => new Date(b.timestamp) - new Date(a.timestamp); const sortByTop = (a, b) => (b.upvoteCount || 0) - (a.upvoteCount || 0) || sortByTimestampDesc(a,b); if (sortBy === 'top') { console.log("Sorting top-level comments by Top"); ownerTopLevel.sort(sortByTop); otherTopLevel.sort(sortByTop); } else { console.log("Sorting top-level comments by Newest"); ownerTopLevel.sort(sortByTimestampDesc); otherTopLevel.sort(sortByTimestampDesc); } const displayComments = ownerTopLevel.concat(otherTopLevel); displayComments.forEach(commentNode => { const isCommenterThePostOwner = commentNode.username === postOwnerUsername; listContainer.appendChild( createCommentElement(commentNode, postOwnerUsername, isPostOwnerViewing, commentsById) ); }); }
-    function createCommentElement(commentNode, postOwnerUsername, isPostOwnerViewing, commentsById) { const comment = commentNode; const commentElement = document.createElement('div'); commentElement.classList.add('comment-item'); commentElement.dataset.commentId = comment._id; const isCommentOwner = comment.username === currentUsername; const isCommenterThePostOwner = comment.username === postOwnerUsername; if (isCommenterThePostOwner) { commentElement.classList.add('owner-comment'); } const canDelete = isPostOwnerViewing || isCommentOwner; const date = comment.timestamp ? new Date(comment.timestamp) : null; let formattedTimestamp = 'just now'; if (date) { formattedTimestamp = date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }); } const authorBadgeHTML = isCommenterThePostOwner ? `<span class="author-badge">Author</span>` : ''; const deleteButtonHTML = canDelete ? `<button class="comment-delete-button" data-comment-id="${comment._id}" aria-label="Delete Comment">×</button>` : ''; const hasUpvoted = currentUsername && comment.upvotes && comment.upvotes.includes(currentUsername); const upvotedClass = hasUpvoted ? 'upvoted' : ''; const upvoteIcon = '👍'; commentElement.innerHTML = ` <div class="comment-header"> <div><strong class="comment-author"></strong>${authorBadgeHTML}</div> <span class="comment-timestamp">${formattedTimestamp}</span> </div> <p class="comment-text"></p> <div class="comment-actions"> <button class="comment-upvote-button ${upvotedClass}" data-comment-id="${comment._id}" aria-label="Upvote Comment"> <span class="upvote-icon">${upvoteIcon}</span> <span class="upvote-count">${comment.upvoteCount ?? 0}</span> </button> <button class="comment-reply-button" data-comment-id="${comment._id}" data-comment-author="${comment.username}">Reply</button> </div> <div class="reply-form-container" id="reply-form-container-${comment._id}" hidden></div> <div class="comment-replies" id="replies-for-${comment._id}"></div> ${deleteButtonHTML}`; const authorEl = commentElement.querySelector('.comment-author'); const textEl = commentElement.querySelector('.comment-text'); if(authorEl) authorEl.textContent = comment.username ?? 'Anon'; if(textEl) textEl.textContent = comment.text ?? ''; if (canDelete) { const deleteButton = commentElement.querySelector('.comment-delete-button'); if (deleteButton) { deleteButton.addEventListener('click', handleCommentDeleteClick); } } const upvoteButton = commentElement.querySelector('.comment-upvote-button'); if (upvoteButton) { upvoteButton.addEventListener('click', handleCommentUpvoteClick); } const replyButton = commentElement.querySelector('.comment-reply-button'); if (replyButton) { replyButton.addEventListener('click', handleReplyButtonClick); } const repliesContainer = commentElement.querySelector(`#replies-for-${comment._id}`); if (repliesContainer && commentNode.children && commentNode.children.length > 0) { console.log(`Rendering ${commentNode.children.length} replies for comment ${comment._id}`); const sortByTimestamp = (a, b) => new Date(a.timestamp) - new Date(b.timestamp); commentNode.children.sort(sortByTimestamp); commentNode.children.forEach(replyNode => { repliesContainer.appendChild( createCommentElement(replyNode, postOwnerUsername, isPostOwnerViewing, commentsById) ); }); } return commentElement; }
-
-    // *** MODIFIED: Add data-target-comment-id ***
-    function createNotificationElement(notification) {
-        const notificationElement = document.createElement('div');
-        notificationElement.classList.add('notification-item');
-        notificationElement.dataset.notificationId = notification._id;
-        notificationElement.dataset.postId = notification.postId;
-
-        // Determine the relevant comment ID for highlighting
-        let targetCommentId = null;
-        if (notification.type === 'reply' && notification.parentCommentId) {
-            targetCommentId = notification.parentCommentId; // Highlight the comment being replied to
-        } else if (notification.type === 'comment') {
-            // This is tricky: we don't easily know the new comment's ID here.
-            // For now, clicking a 'comment' notification will just go to the post.
-            // To highlight the *new* comment, the backend would need to include its ID in the notification data.
-             targetCommentId = null; // Or potentially find latest comment on load? Complex.
+    function checkOfflineStatus() {
+        if (!navigator.onLine) {
+            offlineIndicator.hidden = false;
+        } else {
+            offlineIndicator.hidden = true;
         }
-
-        if (targetCommentId) {
-            notificationElement.dataset.targetCommentId = targetCommentId;
-        }
-
-
-        if (!notification.isRead) { notificationElement.classList.add('unread'); }
-        const date = new Date(notification.createdAt);
-        const formattedDate = date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });
-        let icon = ''; let messageHTML = ''; let contextHTML = '';
-        const senderStrong = document.createElement('strong'); senderStrong.textContent = notification.senderUsername;
-        const postSnippetSpan = document.createElement('span'); postSnippetSpan.className = 'notification-context'; postSnippetSpan.textContent = `On post: "${notification.postTextSnippet || '...'}"`;
-
-        if (notification.type === 'like') { icon = '❤️'; messageHTML = `${senderStrong.outerHTML} liked your post:`; contextHTML = postSnippetSpan.outerHTML; }
-        else if (notification.type === 'comment') { icon = '💬'; messageHTML = `${senderStrong.outerHTML} commented on your post:`; const commentSnippetSpan = document.createElement('span'); commentSnippetSpan.className = 'notification-context comment-context'; commentSnippetSpan.textContent = `"${notification.commentTextSnippet || '...'}"`; contextHTML = `${commentSnippetSpan.outerHTML}${postSnippetSpan.outerHTML}`; }
-        else if (notification.type === 'reply') { icon = '↪️'; messageHTML = `${senderStrong.outerHTML} replied to your comment:`; const commentSnippetSpan = document.createElement('span'); commentSnippetSpan.className = 'notification-context comment-context'; commentSnippetSpan.textContent = `"${notification.commentTextSnippet || '...'}"`; contextHTML = `${commentSnippetSpan.outerHTML}${postSnippetSpan.outerHTML}`; }
-        else { icon = '🔔'; messageHTML = `New notification from ${senderStrong.outerHTML}`; }
-
-        notificationElement.innerHTML = ` <div class="notification-icon">${icon}</div> <div class="notification-content"> <div class="notification-message">${messageHTML}</div> <div class="notification-context-area">${contextHTML}</div> </div> <div class="notification-timestamp">${formattedDate}</div> `;
-        notificationElement.addEventListener('click', handleNotificationClick);
-        return notificationElement;
     }
 
+    // --- Section Loading Logic ---
 
-    // --- Form Submission and Interaction Handlers ---
-    async function handlePostSubmit(event) { event.preventDefault(); const errorDisplayId = 'create-post-error'; clearError(errorDisplayId); if (!navigator.onLine) { displayError("You are offline. Cannot create post.", errorDisplayId); return; } console.log("FUNC: handlePostSubmit"); const textarea = document.getElementById('post-text-input'); const text = textarea.value.trim(); const form = event.target; const submitButton = form.querySelector('button[type="submit"]'); const charCounter = document.getElementById('char-counter'); if (!text) { displayError('Post cannot be empty!', errorDisplayId); return; } if (!currentUsername) { displayError("Error: Username not set.", errorDisplayId); return; } submitButton.disabled = true; submitButton.textContent = 'Posting...'; try { const response = await fetch('/api/posts', { method: 'POST', headers: { 'Content-Type': 'application/json', }, body: JSON.stringify({ username: currentUsername, text: text }), }); const responseData = await response.json(); if (!response.ok) { throw new Error(responseData.message || `HTTP error ${response.status}`); } console.log('API_RESP: Post created:', responseData); textarea.value = ''; if (charCounter) { charCounter.textContent = '0/1000'; } navigateTo('home'); navButtons.forEach(btn => btn.classList.remove('active')); document.querySelector('.nav-button[data-section="home"]')?.classList.add('active'); } catch (error) { console.error("Error creating post:", error); displayError(`Failed to create post: ${error.message}`, errorDisplayId); } finally { if (submitButton) { submitButton.disabled = false; submitButton.textContent = 'Post'; } } }
-    function handleFilterClick(event) { clearError('home-error-message'); const clickedButton = event.currentTarget; const filter = clickedButton.dataset.filter; console.log(`FUNC: handleFilterClick: ${filter}`); document.querySelectorAll('#filter-options .filter-button').forEach(button => { button.classList.remove('active'); }); clickedButton.classList.add('active'); fetchAndDisplayPosts(filter); }
-    async function handleLikeClick(event) { const errorDisplayId = null; clearError(errorDisplayId); if (!navigator.onLine) { displayError("You are offline. Cannot like post.", errorDisplayId); return; } const button = event.currentTarget; const postId = button.dataset.postId; console.log(`FUNC: handleLikeClick - Post ID: ${postId}`); if (!currentUsername) { displayError("Cannot like: Please refresh (username missing).", errorDisplayId); return; } if (!postId) { displayError("Cannot like: Post ID missing.", errorDisplayId); return; } const likeIconSpan = button.querySelector('.like-icon'); const likeCountSpan = button.querySelector('.like-count'); const isCurrentlyLiked = button.classList.contains('liked'); if (isCurrentlyLiked) { console.log("Already liked, no action taken (unlike not implemented)."); return; } const originalCount = parseInt(likeCountSpan.textContent || '0'); if (likeIconSpan) likeIconSpan.textContent = '♥'; if (likeCountSpan) likeCountSpan.textContent = originalCount + 1; button.classList.add('liked'); button.disabled = true; try { const response = await fetch(`/api/${postId}/like`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUsername }) }); const updatedPost = await response.json(); if (!response.ok) { throw new Error(updatedPost.message || `Server error ${response.status}`); } console.log(`API_RESP: Like OK for ${postId}. Count: ${updatedPost.likeCount}`); if (likeCountSpan) { likeCountSpan.textContent = updatedPost.likeCount ?? 0; } if (likeIconSpan) { likeIconSpan.textContent = '♥'; } button.classList.add('liked'); } catch (error) { console.error(`Error liking post ${postId}:`, error); displayError(`Failed to like: ${error.message}`, errorDisplayId); if (likeIconSpan) likeIconSpan.textContent = '♡'; if (likeCountSpan) likeCountSpan.textContent = originalCount; button.classList.remove('liked'); } finally { button.disabled = false; } }
-    function handleCommentButtonClick(event) { const button = event.currentTarget; const postId = button.dataset.postId; const postCard = button.closest('.post-card'); const commentsSection = document.getElementById(`comments-section-${postId}`); const commentErrorId = `comment-error-${postId}`; if (!commentsSection || !postCard) { console.error("Could not find comments elements for post:", postId); return; } clearError(commentErrorId); const isCurrentlyHidden = commentsSection.hidden; commentsSection.hidden = !isCurrentlyHidden; console.log(`FUNC: handleCommentButtonClick - Toggled comments for ${postId} to ${isCurrentlyHidden ? 'visible' : 'hidden'}`); if (isCurrentlyHidden) { const input = commentsSection.querySelector('.comment-input'); if (input) input.focus(); const postOwnerUsernameElement = postCard.querySelector('.post-username'); const postOwnerUsername = postOwnerUsernameElement ? postOwnerUsernameElement.textContent : null; const commentsListContainerId = `comments-list-${postId}`; if (!postOwnerUsername) { console.warn(`Could not determine post owner username for postId: ${postId}`); } const activeSortButton = postCard.querySelector('.comment-sort-button.active'); const sortBy = activeSortButton ? activeSortButton.dataset.sort : 'new'; fetchAndRenderComments(postId, commentsListContainerId, postOwnerUsername, sortBy); } }
-    async function fetchAndRenderComments(postId, listContainerId, postOwnerUsername, sortBy = 'new') { const listContainer = document.getElementById(listContainerId); const commentErrorId = `comment-error-${postId}`; if (!listContainer) { console.error("Comment list container not found for fetch:", listContainerId); return; } clearError(commentErrorId); showLoadingSpinner(listContainer); try { console.log(`API_CALL: Fetching details for post ${postId} to get comments (Sort: ${sortBy})`); const response = await fetch(`/api/${postId}`); if (!response.ok) { let e = `HTTP error ${response.status}`; try { const d = await response.json(); e = d.message || e; } catch (_) {} throw new Error(e); } const postDetails = await response.json(); console.log(`API_RESP: Details for ${postId}. Comments:`, postDetails.comments); renderComments(postDetails.comments, listContainerId, postOwnerUsername, sortBy); } catch (error) { console.error(`Error fetching/rendering comments for ${postId}:`, error); listContainer.innerHTML = `<p style="color: var(--error-color); font-size: 0.9em; text-align: center;">Failed to load comments.</p>`; } }
-    async function handleCommentSubmit(event) { event.preventDefault(); const form = event.currentTarget; const postId = form.dataset.postId; const input = form.querySelector('.comment-input'); const submitButton = form.querySelector('.comment-submit-button'); const commentText = input.value.trim(); const errorDisplayId = `comment-error-${postId}`; clearError(errorDisplayId); if (!navigator.onLine) { displayError("You are offline. Cannot submit comment.", errorDisplayId); return; } console.log(`FUNC: handleCommentSubmit - Post ID: ${postId}, Text: "${commentText}"`); if (!currentUsername) { displayError("Cannot comment: Username not set.", errorDisplayId); return; } if (!postId) { displayError("Cannot comment: Post ID missing.", errorDisplayId); return; } if (!commentText) { displayError("Comment cannot be empty.", errorDisplayId); return; } if (commentText.length > 500) { displayError("Comment exceeds 500 characters.", errorDisplayId); return; } input.disabled = true; submitButton.disabled = true; submitButton.textContent = '...'; try { const response = await fetch(`/api/${postId}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUsername, text: commentText }) }); const updatedPost = await response.json(); if (!response.ok) { throw new Error(updatedPost.message || `Server error ${response.status}`); } console.log(`API_RESP: Comment added to ${postId}. Count: ${updatedPost.commentCount}`); input.value = ''; const postCard = form.closest('.post-card'); if (postCard) { const commentCountSpan = postCard.querySelector('.comment-button .comment-count'); if (commentCountSpan) commentCountSpan.textContent = updatedPost.commentCount ?? 0; const activeSortButton = postCard.querySelector('.comment-sort-button.active'); const currentSort = activeSortButton ? activeSortButton.dataset.sort : 'new'; renderComments(updatedPost.comments, `comments-list-${postId}`, updatedPost.username, currentSort); } } catch (error) { console.error(`Error adding comment to post ${postId}:`, error); displayError(`Failed to add comment: ${error.message}`, errorDisplayId); } finally { input.disabled = false; submitButton.disabled = false; submitButton.textContent = 'Send'; } }
-    async function handleDeleteClick(event) { const errorDisplayId = 'profile-error-message'; clearError(errorDisplayId); if (!navigator.onLine) { displayError("You are offline. Cannot delete post.", errorDisplayId); return; } const button = event.currentTarget; const postId = button.dataset.postId; console.log(`FUNC: handleDeleteClick - Post ID: ${postId}`); if (!currentUsername) { displayError("Cannot delete: Username not set.", errorDisplayId); return; } if (!postId) { displayError("Cannot delete: Post ID missing.", errorDisplayId); return; } if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) { console.log("Delete cancelled by user."); return; } button.disabled = true; try { const response = await fetch(`/api/${postId}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUsername }) }); if (response.ok || response.status === 404) { console.log(`API_RESP: Post ${postId} deleted or already gone.`); const postCardElement = button.closest('.post-card'); if (postCardElement) { postCardElement.remove(); console.log(`UI: Removed post card ${postId} from profile view.`); const container = document.getElementById('my-posts-container'); if (container && !container.querySelector('.post-card')) { container.innerHTML = '<p class="text-center padding-1" style="font-style: italic;">You haven\'t posted anything yet.</p>'; } } else { console.warn("Could not find post card element to remove after deletion."); } } else { const errorData = await response.json().catch(() => ({ message: `HTTP error ${response.status}` })); console.error(`API_ERROR: Failed to delete post ${postId}. Status: ${response.status}. Message: ${errorData.message}`); displayError(`Failed to delete post: ${errorData.message || 'Unknown error'}`, errorDisplayId); if (document.body.contains(button)) { button.disabled = false; } } } catch (error) { console.error(`Error during delete request for post ${postId}:`, error); displayError(`Network error: Could not delete post. ${error.message}`, errorDisplayId); if (document.body.contains(button)) { button.disabled = false; } } }
+    function loadSection(section) {
+        currentSection = section;
 
-    // *** MODIFIED: Extract targetCommentId and pass to navigateTo ***
-    function handleNotificationClick(event) {
-        const notificationElement = event.currentTarget;
-        const postId = notificationElement.dataset.postId;
-        const targetCommentId = notificationElement.dataset.targetCommentId || null; // Get the target ID if it exists
+        // Update Nav UI
+        navButtons.forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.querySelector(`.nav-button[data-section="${section}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
 
-        console.log(`FUNC: handleNotificationClick - PostID: ${postId}, TargetCommentID: ${targetCommentId}`);
+        // Update Header Title
+        sectionTitle.textContent = section.charAt(0).toUpperCase() + section.slice(1);
 
-        if (!postId) { console.error("Could not get postId from notification item:", notificationElement); displayError("Could not link to post: ID missing."); return; }
+        // Clear Content
+        appContent.innerHTML = '<div class="loading-spinner">Loading...</div>';
 
-        // Pass data as an object
-        navigateTo('single-post', { postId: postId, commentIdToHighlight: targetCommentId });
+        // Load Content based on section
+        switch (section) {
+            case 'home':
+                loadHomeFeed();
+                break;
+            case 'notifications':
+                loadNotifications();
+                break;
+            case 'create':
+                renderCreatePost();
+                break;
+            case 'profile':
+                loadProfile(currentUsername); // Load own profile
+                break;
+            default:
+                loadHomeFeed();
+        }
     }
 
-    async function handleVisibilityChange(event) { const errorId = 'profile-error-message'; const statusMsgElement = document.getElementById('visibility-status-message'); clearError(errorId); if (statusMsgElement) statusMsgElement.textContent = ''; const radios = document.querySelectorAll('input[name="profileVisibility"]'); if (!navigator.onLine) { displayError("You are offline. Cannot change visibility.", errorId); let previousValue = 'public'; radios.forEach(r => { if (r.defaultChecked) previousValue = r.value; }); event.target.checked = event.target.value !== previousValue; radios.forEach(r => r.checked = r.value === previousValue); return; } const isPublic = event.target.value === 'public'; console.log(`FUNC: handleVisibilityChange - Setting visibility to ${isPublic ? 'Public' : 'Private'}`); radios.forEach(radio => radio.disabled = true); if (statusMsgElement) statusMsgElement.textContent = 'Saving...'; try { const response = await fetch('/api/profiles/me/visibility', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUsername, isPublic: isPublic }) }); const data = await response.json(); if (!response.ok) { throw new Error(data.message || `Server error ${response.status}`); } console.log("API_RESP: Visibility updated successfully:", data); if (statusMsgElement) { statusMsgElement.textContent = 'Visibility updated!'; setTimeout(() => { if (statusMsgElement) statusMsgElement.textContent = ''; }, 2500); } radios.forEach(r => r.defaultChecked = r.checked); } catch (error) { console.error("Error updating visibility:", error); displayError(`Failed to update visibility: ${error.message}`, errorId); let previousValue = 'public'; radios.forEach(r => { if (r.defaultChecked) previousValue = r.value; }); event.target.checked = event.target.value !== previousValue; radios.forEach(r => r.checked = r.value === previousValue); } finally { radios.forEach(radio => radio.disabled = false); if (statusMsgElement && statusMsgElement.textContent === 'Saving...') { statusMsgElement.textContent = ''; } } }
-    async function handleCommentDeleteClick(event) { const button = event.currentTarget; const commentId = button.dataset.commentId; const commentElement = button.closest('.comment-item'); const postCard = button.closest('.post-card'); if (!commentId || !commentElement || !postCard) { console.error("Missing data for comment deletion."); alert("Error: Cannot delete comment."); return; } const postId = postCard.dataset.postId; const commentErrorId = `comment-error-${postId}`; clearError(commentErrorId); if (!confirm("Are you sure you want to delete this comment?")) { console.log("Comment deletion cancelled."); return; } if (!navigator.onLine) { displayError("You are offline. Cannot delete comment.", commentErrorId); return; } console.log(`FUNC: handleCommentDeleteClick - PostID: ${postId}, CommentID: ${commentId}`); button.disabled = true; try { const response = await fetch(`/api/${postId}/comments/${commentId}`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUsername }) }); const updatedPost = await response.json(); if (!response.ok) { throw new Error(updatedPost.message || `Server error ${response.status}`); } console.log(`API_RESP: Comment ${commentId} deleted successfully.`); commentElement.remove(); const commentCountSpan = postCard.querySelector('.comment-button .comment-count'); if (commentCountSpan) { commentCountSpan.textContent = updatedPost.commentCount ?? 0; } const commentsList = postCard.querySelector(`#comments-list-${postId}`); if (commentsList && !commentsList.querySelector('.comment-item')) { commentsList.innerHTML = '<p style="font-style: italic; font-size: 0.9em; text-align: center; padding: 0.5rem 0;">No comments yet.</p>'; } } catch (error) { console.error(`Error deleting comment ${commentId}:`, error); displayError(`Failed to delete comment: ${error.message}`, commentErrorId); button.disabled = false; } }
-    async function handleCommentUpvoteClick(event) { const button = event.currentTarget; const commentId = button.dataset.commentId; const commentItem = button.closest('.comment-item'); const postCard = button.closest('.post-card'); if (!commentId || !commentItem || !postCard) { console.error("Missing data for comment upvote."); alert("Error: Cannot upvote comment."); return; } const postId = postCard.dataset.postId; const commentErrorId = `comment-error-${postId}`; clearError(commentErrorId); if (!navigator.onLine) { displayError("You are offline. Cannot upvote comment.", commentErrorId); return; } if (!currentUsername) { displayError("Cannot upvote: Username not identified.", commentErrorId); return; } console.log(`FUNC: handleCommentUpvoteClick - PostID: ${postId}, CommentID: ${commentId}`); const upvoteCountSpan = button.querySelector('.upvote-count'); const currentCount = parseInt(upvoteCountSpan.textContent || '0'); const isCurrentlyUpvoted = button.classList.contains('upvoted'); if (isCurrentlyUpvoted) { button.classList.remove('upvoted'); upvoteCountSpan.textContent = Math.max(0, currentCount - 1); } else { button.classList.add('upvoted'); upvoteCountSpan.textContent = currentCount + 1; } button.disabled = true; try { const response = await fetch(`/api/${postId}/comments/${commentId}/upvote`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUsername }) }); const data = await response.json(); if (!response.ok) { throw new Error(data.message || `Server error ${response.status}`); } console.log(`API_RESP: Comment ${commentId} upvote toggled. New count: ${data.upvoteCount}`); upvoteCountSpan.textContent = data.upvoteCount ?? 0; const userHasUpvoted = data.upvotes && data.upvotes.includes(currentUsername); if (userHasUpvoted) { button.classList.add('upvoted'); } else { button.classList.remove('upvoted'); } } catch (error) { console.error(`Error upvoting comment ${commentId}:`, error); displayError(`Failed to upvote: ${error.message}`, commentErrorId); if (isCurrentlyUpvoted) { button.classList.add('upvoted'); upvoteCountSpan.textContent = currentCount; } else { button.classList.remove('upvoted'); upvoteCountSpan.textContent = currentCount; } } finally { button.disabled = false; } }
-    function handleCommentSortClick(event) { const clickedButton = event.currentTarget; const postCard = clickedButton.closest('.post-card'); const postId = clickedButton.dataset.postId; const sortBy = clickedButton.dataset.sort; if (!postCard || !postId || !sortBy) { console.error("Missing data for comment sort click."); return; } console.log(`FUNC: handleCommentSortClick - PostID: ${postId}, SortBy: ${sortBy}`); const sortOptionsContainer = postCard.querySelector('.comment-sort-options'); if (sortOptionsContainer) { sortOptionsContainer.querySelectorAll('.comment-sort-button').forEach(button => { button.classList.remove('active'); }); clickedButton.classList.add('active'); } const listContainerId = `comments-list-${postId}`; const postOwnerUsernameElement = postCard.querySelector('.post-username'); const postOwnerUsername = postOwnerUsernameElement ? postOwnerUsernameElement.textContent : null; fetchAndRenderComments(postId, listContainerId, postOwnerUsername, sortBy); }
-    function handleReplyButtonClick(event) { const button = event.currentTarget; const commentId = button.dataset.commentId; const commentAuthor = button.dataset.commentAuthor; const commentItem = button.closest('.comment-item'); const postCard = button.closest('.post-card'); if (!commentId || !commentItem || !postCard) { console.error("Missing elements for reply button click."); return; } const postId = postCard.dataset.postId; const replyContainerId = `reply-form-container-${commentId}`; const replyContainer = commentItem.querySelector(`#${replyContainerId}`); if (!replyContainer) { console.error("Could not find reply container for comment:", commentId); return; } const allReplyForms = postCard.querySelectorAll('.reply-form-container'); allReplyForms.forEach(container => { if (container.id !== replyContainerId) { container.innerHTML = ''; container.hidden = true; } }); if (!replyContainer.hidden) { replyContainer.innerHTML = ''; replyContainer.hidden = true; console.log(`FUNC: handleReplyButtonClick - Closed reply form for comment ${commentId}`); } else { console.log(`FUNC: handleReplyButtonClick - Opening reply form for comment ${commentId}`); const replyErrorId = `reply-error-${commentId}`; replyContainer.innerHTML = ` <form class="reply-form" data-post-id="${postId}" data-parent-id="${commentId}"> <div id="${replyErrorId}" class="error-message reply-error" style="display: none;"></div> <textarea class="reply-input" placeholder="Reply to ${commentAuthor}..." required maxlength="500"></textarea> <div class="reply-form-actions"> <button type="button" class="reply-cancel-button">Cancel</button> <button type="submit" class="reply-submit-button">Reply</button> </div> </form> `; const replyForm = replyContainer.querySelector('.reply-form'); const cancelBtn = replyContainer.querySelector('.reply-cancel-button'); if (replyForm) replyForm.addEventListener('submit', handleReplySubmit); if (cancelBtn) cancelBtn.addEventListener('click', handleCancelReply); replyContainer.hidden = false; replyContainer.querySelector('.reply-input').focus(); } }
-    function handleCancelReply(event) { const button = event.currentTarget; const replyContainer = button.closest('.reply-form-container'); if (replyContainer) { console.log("FUNC: handleCancelReply"); replyContainer.innerHTML = ''; replyContainer.hidden = true; } }
-    async function handleReplySubmit(event) { event.preventDefault(); const form = event.currentTarget; const postId = form.dataset.postId; const parentId = form.dataset.parentId; const input = form.querySelector('.reply-input'); const submitButton = form.querySelector('.reply-submit-button'); const cancelButton = form.querySelector('.reply-cancel-button'); const replyText = input.value.trim(); const errorDisplayId = `reply-error-${parentId}`; const replyContainer = form.closest('.reply-form-container'); const postCard = form.closest('.post-card'); clearError(errorDisplayId); if (!navigator.onLine) { displayError("You are offline. Cannot submit reply.", errorDisplayId); return; } if (!currentUsername) { displayError("Cannot reply: Username not set.", errorDisplayId); return; } if (!postId || !parentId) { displayError("Cannot reply: Missing ID.", errorDisplayId); return; } if (!replyText) { displayError("Reply cannot be empty.", errorDisplayId); return; } if (replyText.length > 500) { displayError("Reply exceeds 500 characters.", errorDisplayId); return; } console.log(`FUNC: handleReplySubmit - PostID: ${postId}, ParentID: ${parentId}, Text: "${replyText}"`); input.disabled = true; submitButton.disabled = true; cancelButton.disabled = true; submitButton.textContent = '...'; try { const response = await fetch(`/api/${postId}/comments`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: currentUsername, text: replyText, parentId: parentId }) }); const updatedPost = await response.json(); if (!response.ok) { throw new Error(updatedPost.message || `Server error ${response.status}`); } console.log(`API_RESP: Reply added to comment ${parentId}. New total count: ${updatedPost.commentCount}`); if (replyContainer) { replyContainer.innerHTML = ''; replyContainer.hidden = true; } if (postCard) { const commentCountSpan = postCard.querySelector('.comment-button .comment-count'); if (commentCountSpan) commentCountSpan.textContent = updatedPost.commentCount ?? 0; const listContainerId = `comments-list-${postId}`; const postOwnerUsername = updatedPost.username; const activeSortButton = postCard.querySelector('.comment-sort-button.active'); const currentSort = activeSortButton ? activeSortButton.dataset.sort : 'new'; await fetchAndRenderComments(postId, listContainerId, postOwnerUsername, currentSort); } } catch (error) { console.error(`Error adding reply to comment ${parentId}:`, error); displayError(`Failed to add reply: ${error.message}`, errorDisplayId); input.disabled = false; submitButton.disabled = false; cancelButton.disabled = false; submitButton.textContent = 'Reply'; } }
+    // --- API Interactions (Authenticated) ---
 
-    // --- Settings Modal Logic ---
-    function openSettingsModal() { console.log("FUNC: openSettingsModal"); clearError(); settingsModal.hidden = false; }
-    function closeSettingsModal() { console.log("FUNC: closeSettingsModal"); settingsModal.hidden = true; }
-    function handleModalOverlayClick(event) { if (event.target === settingsModal) { console.log("FUNC: handleModalOverlayClick (closed via overlay)."); closeSettingsModal(); } }
+    async function fetchWithAuth(url, options = {}) {
+        if (!authToken) {
+            logout();
+            throw new Error('No auth token');
+        }
 
-    // --- Theme Logic ---
-    function handleThemeToggle() { setTheme(themeToggle.checked ? 'dark' : 'light'); }
-    function setTheme(theme) { console.log(`FUNC: setTheme: ${theme}`); const themeColorMeta = document.querySelector('meta[name="theme-color"]'); if (theme === 'dark') { document.body.classList.add('dark-mode'); localStorage.setItem('theme', 'dark'); if(themeToggle) themeToggle.checked = true; if(themeColorMeta) themeColorMeta.setAttribute('content', '#1f1f1f'); } else { document.body.classList.remove('dark-mode'); localStorage.setItem('theme', 'light'); if(themeToggle) themeToggle.checked = false; if(themeColorMeta) themeColorMeta.setAttribute('content', '#5c6bc0'); } }
-    function setupTheme() { const savedTheme = localStorage.getItem('theme'); const currentTheme = (savedTheme === 'dark') ? 'dark' : 'light'; console.log(`FUNC: setupTheme: Initial theme is ${currentTheme}`); setTheme(currentTheme); }
+        const headers = {
+            ...options.headers,
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+        };
 
-    // --- Username Setup Helpers ---
-    function debounce(func, delay) { let timeoutId; return function(...args) { clearTimeout(timeoutId); timeoutId = setTimeout(() => { func.apply(this, args); }, delay); }; }
-    function generateSimpleUsername() { const adj = ["Happy", "Sleepy", "Clever", "Quiet", "Brave", "Shiny", "Quick", "Silent", "Wise", "Gentle", "Funny", "Kind", "Calm", "Eager", "Lucky"]; const nouns = ["Panda", "River", "Fox", "Star", "Robot", "Cloud", "Stone", "Flame", "Leaf", "Ocean", "Sparrow", "Tiger", "Moon", "Book", "Key"]; return `${adj[Math.floor(Math.random() * adj.length)]}${nouns[Math.floor(Math.random() * nouns.length)]}${Math.floor(Math.random() * 9000 + 1000)}`; }
-    function updateUsernameInUI() { const profileUsernameDisplay = document.getElementById('profile-username-display'); if (profileUsernameDisplay) { profileUsernameDisplay.textContent = currentUsername || 'Error identifying username'; } }
-    function handleUsernameInput() { if (!usernameInput || !usernameStatus || !confirmUsernameButton) return; clearError('username-setup-error'); const username = usernameInput.value.trim(); const minLength = 3; const maxLength = 20; const pattern = /^[a-zA-Z0-9_-]+$/; usernameStatus.textContent = ''; usernameStatus.className = 'username-status-message'; confirmUsernameButton.disabled = true; if (username.length === 0) { return; } else if (username.length < minLength) { usernameStatus.textContent = `Username must be at least ${minLength} characters.`; usernameStatus.classList.add('invalid'); return; } else if (username.length > maxLength) { usernameStatus.textContent = `Username cannot exceed ${maxLength} characters.`; usernameStatus.classList.add('invalid'); return; } else if (!pattern.test(username)) { usernameStatus.textContent = 'Invalid characters (use letters, numbers, _, -).'; usernameStatus.classList.add('invalid'); return; } checkUsernameAvailability(username); }
-    async function checkUsernameAvailability(username) { if (!usernameStatus || !confirmUsernameButton) return; console.log(`API_CALL: Checking username availability for: ${username}`); usernameStatus.textContent = 'Checking...'; usernameStatus.className = 'username-status-message checking'; confirmUsernameButton.disabled = true; try { const response = await fetch(`/api/profiles/check-username?username=${encodeURIComponent(username)}`); const data = await response.json(); if (!response.ok) { throw new Error(data.message || `HTTP Error ${response.status}`); } if (data.exists) { console.log(`API_RESP: Username '${username}' is taken.`); usernameStatus.textContent = 'Username already taken.'; usernameStatus.className = 'username-status-message taken'; confirmUsernameButton.disabled = true; } else { console.log(`API_RESP: Username '${username}' is available.`); usernameStatus.textContent = 'Username available!'; usernameStatus.className = 'username-status-message available'; confirmUsernameButton.disabled = false; } } catch (error) { console.error("Error checking username availability:", error); usernameStatus.textContent = 'Could not check username. Try again.'; usernameStatus.className = 'username-status-message invalid'; confirmUsernameButton.disabled = true; } }
-    function handleRegenerateUsername() { if (!usernameInput) return; console.log("FUNC: handleRegenerateUsername"); usernameInput.value = generateSimpleUsername(); handleUsernameInput(); }
-    async function handleUsernameConfirmation() { if (!usernameInput || !usernameStatus || !confirmUsernameButton) return; const username = usernameInput.value.trim(); const errorDisplayId = 'username-setup-error'; clearError(errorDisplayId); const minLength = 3; const maxLength = 20; const pattern = /^[a-zA-Z0-9_-]+$/; if (username.length < minLength || username.length > maxLength || !pattern.test(username)) { displayError("Username is invalid.", errorDisplayId); handleUsernameInput(); return; } if (!navigator.onLine) { displayError("You are offline. Cannot confirm username.", errorDisplayId); return; } if (!usernameStatus.classList.contains('available')) { displayError("Please choose an available and valid username.", errorDisplayId); return; } const visibilityInput = document.querySelector('input[name="profileVisibility"]:checked'); const isPublic = visibilityInput ? visibilityInput.value === 'public' : true; console.log(`API_CALL: Confirming username '${username}', Public: ${isPublic}`); confirmUsernameButton.disabled = true; confirmUsernameButton.textContent = 'Confirming...'; try { const response = await fetch('/api/profiles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: username, isPublic: isPublic }) }); const data = await response.json(); if (!response.ok) { if (response.status === 409 && data.code === 'USERNAME_TAKEN') { displayError('Username already taken. Please try another.', errorDisplayId); usernameStatus.textContent = 'Username already taken.'; usernameStatus.className = 'username-status-message taken'; } else if (response.status === 400) { displayError(`Validation failed: ${data.message || 'Invalid input.'}`, errorDisplayId); usernameStatus.textContent = 'Invalid username format.'; usernameStatus.className = 'username-status-message invalid'; } else { throw new Error(data.message || `Server error ${response.status}`); } confirmUsernameButton.disabled = false; confirmUsernameButton.textContent = 'Confirm Username & Enter'; return; } console.log("API_RESP: Profile created successfully:", data); currentUsername = data.username; localStorage.setItem(USERNAME_KEY, currentUsername); if (usernameSetupModal) { usernameSetupModal.hidden = true; } startAppFlow(); } catch (error) { console.error("Error confirming username:", error); displayError(`Failed to confirm username: ${error.message}`, errorDisplayId); confirmUsernameButton.disabled = false; confirmUsernameButton.textContent = 'Confirm Username & Enter'; } }
+        const response = await fetch(url, { ...options, headers });
 
-    // --- Initial View Load ---
-    function loadInitialView() { const initialSection = 'home'; navigateTo(initialSection); navButtons.forEach(btn => btn.classList.remove('active')); document.querySelector(`.nav-button[data-section="${initialSection}"]`)?.classList.add('active'); console.log("FUNC: loadInitialView complete."); }
+        if (response.status === 401) {
+            logout(); // Token expired or invalid
+            throw new Error('Unauthorized');
+        }
 
-    // --- Service Worker Registration ---
-    function registerServiceWorker() { if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/service-worker.js') .then(registration => { console.log('[ServiceWorker] Registration successful with scope: ', registration.scope); }) .catch(error => { console.error('[ServiceWorker] Registration failed: ', error); }); }); } else { console.log('[ServiceWorker] Service workers are not supported by this browser.'); } }
+        return response;
+    }
 
-    // --- Online/Offline Status ---
-    function updateOnlineStatus() { const isOnline = navigator.onLine; console.log(`FUNC: updateOnlineStatus - Online: ${isOnline}`); if (offlineIndicator) { offlineIndicator.hidden = isOnline; } if (isOnline) { document.body.classList.remove('is-offline'); } else { document.body.classList.add('is-offline'); } }
+    // --- Home Feed ---
+    async function loadHomeFeed() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/posts?sort=latest`); // Public endpoint
+            const posts = await response.json();
+            renderPosts(posts);
+        } catch (error) {
+            appContent.innerHTML = '<p class="error-message">Failed to load posts.</p>';
+        }
+    }
 
-    // --- Start the App ---
-    initializeApp();
+    // --- Create Post ---
+    function renderCreatePost() {
+        appContent.innerHTML = `
+            <div class="create-post-container">
+                <textarea id="new-post-text" placeholder="What's on your mind? (Expires in 24h)" maxlength="280"></textarea>
+                <div class="char-count">0/280</div>
+                <button id="submit-post-button" class="confirm-button">Post</button>
+            </div>
+        `;
 
-}); // End DOMContentLoaded listener
+        const textarea = document.getElementById('new-post-text');
+        const charCount = document.querySelector('.char-count');
+        const submitBtn = document.getElementById('submit-post-button');
+
+        textarea.addEventListener('input', () => {
+            charCount.textContent = `${textarea.value.length}/280`;
+        });
+
+        submitBtn.addEventListener('click', async () => {
+            const text = textarea.value.trim();
+            if (!text) return;
+
+            try {
+                const response = await fetchWithAuth(`${API_BASE_URL}/posts`, {
+                    method: 'POST',
+                    body: JSON.stringify({ text })
+                });
+
+                if (response.ok) {
+                    loadSection('home');
+                } else {
+                    alert('Failed to create post.');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Error creating post.');
+            }
+        });
+    }
+
+    // --- Profile ---
+    async function loadProfile(username) {
+        try {
+            // Fetch Profile Data
+            const profileRes = await fetch(`${API_BASE_URL}/profiles/${username}`);
+            if (!profileRes.ok) throw new Error('Profile not found');
+            const profile = await profileRes.json();
+
+            // Fetch Posts (Public or My Posts)
+            let postsUrl = `${API_BASE_URL}/profiles/${username}/posts`;
+
+            let postsRes;
+            if (username === currentUsername) {
+                postsRes = await fetchWithAuth(`${API_BASE_URL}/my-posts`);
+            } else {
+                postsRes = await fetch(postsUrl);
+            }
+
+            let posts = [];
+            if (postsRes.ok) {
+                posts = await postsRes.json();
+            } else if (postsRes.status === 403) {
+                // Private profile
+                posts = null;
+            }
+
+            renderProfileView(profile, posts);
+
+        } catch (error) {
+            appContent.innerHTML = `<p class="error-message">Error loading profile: ${escapeHtml(error.message)}</p>`;
+        }
+    }
+
+    function renderProfileView(profile, posts) {
+        let postsHtml = '';
+        if (posts === null) {
+            postsHtml = `<div class="private-profile-message">${ICONS.lock} This profile is private.</div>`;
+        } else if (posts.length === 0) {
+            postsHtml = '<div class="no-posts-message">No posts yet.</div>';
+        } else {
+            postsHtml = posts.map(post => createPostElement(post).outerHTML).join('');
+        }
+
+        const isOwnProfile = profile.username === currentUsername;
+        let visibilityControl = '';
+        if (isOwnProfile) {
+            visibilityControl = `
+                <div class="profile-visibility-control">
+                    <span>Visibility: <strong>${profile.isPublic ? 'Public' : 'Private'}</strong></span>
+                    <button id="toggle-visibility-btn" class="small-button">Change</button>
+                </div>
+            `;
+        }
+
+        const isHearted = profile.hearts && profile.hearts.includes(currentUsername);
+        const heartCount = profile.hearts ? profile.hearts.length : 0;
+        const heartButtonHtml = !isOwnProfile ?
+            `<button id="toggle-heart-btn" class="action-btn ${isHearted ? 'liked' : ''}" style="font-size: 1.2rem; margin-top: 10px;">
+                ${isHearted ? ICONS.heartFilled : ICONS.heartOutline} <span>${heartCount}</span>
+            </button>` :
+            `<div class="hearts-display">${ICONS.heartFilled} <span>${heartCount} Hearts</span></div>`;
+
+        appContent.innerHTML = `
+            <div class="profile-header">
+                <div class="profile-avatar-placeholder">${escapeHtml(profile.username).charAt(0).toUpperCase()}</div>
+                <h2>${escapeHtml(profile.username)}</h2>
+                <p>Joined: ${new Date(profile.createdAt).toLocaleDateString()}</p>
+                ${heartButtonHtml}
+                ${visibilityControl}
+            </div>
+            <div class="profile-posts">
+                <h3>Posts</h3>
+                ${postsHtml}
+            </div>
+        `;
+
+        // Add event listener for visibility toggle
+        if (isOwnProfile) {
+            document.getElementById('toggle-visibility-btn').addEventListener('click', async () => {
+                const newStatus = !profile.isPublic;
+                try {
+                    const res = await fetchWithAuth(`${API_BASE_URL}/profiles/me/visibility`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({ isPublic: newStatus })
+                    });
+                    if (res.ok) {
+                        loadProfile(currentUsername); // Reload
+                    }
+                } catch (e) {
+                    alert('Failed to update visibility');
+                }
+            });
+        } else {
+            // Heart Button Listener
+            const heartBtn = document.getElementById('toggle-heart-btn');
+            if (heartBtn) {
+                heartBtn.addEventListener('click', async () => {
+                    try {
+                        const res = await fetchWithAuth(`${API_BASE_URL}/profiles/${profile.username}/heart`, { method: 'POST' });
+                        if (res.ok) {
+                            const data = await res.json();
+                            const newIsHearted = data.isHearted;
+                            heartBtn.innerHTML = `${newIsHearted ? ICONS.heartFilled : ICONS.heartOutline} <span>${data.heartCount}</span>`;
+                            heartBtn.classList.toggle('liked', newIsHearted);
+                        }
+                    } catch (e) {
+                        alert('Error hearting profile');
+                    }
+                });
+            }
+        }
+
+        // Re-attach event listeners for posts
+        if (posts && posts.length > 0) {
+            const postsContainer = appContent.querySelector('.profile-posts');
+            postsContainer.innerHTML = '<h3>Posts</h3>'; // Clear string version
+            posts.forEach(post => {
+                postsContainer.appendChild(createPostElement(post));
+            });
+        }
+    }
+
+    // --- Notifications ---
+    async function loadNotifications() {
+        try {
+            const response = await fetchWithAuth(`${API_BASE_URL}/notifications`);
+            const notifications = await response.json();
+
+            if (notifications.length === 0) {
+                appContent.innerHTML = '<p class="text-center padding-1">No notifications.</p>';
+                return;
+            }
+
+            appContent.innerHTML = '<div class="notifications-list"></div>';
+            const list = appContent.querySelector('.notifications-list');
+
+            notifications.forEach(notif => {
+                const item = document.createElement('div');
+                item.className = `notification-item ${notif.isRead ? 'read' : 'unread'} notif-${notif.type}`;
+                item.innerHTML = `
+                    <div class="notif-icon">${getNotificationIcon(notif.type)}</div>
+                    <div class="notif-content">
+                        <p>
+                            <strong>${escapeHtml(notif.senderUsername)}</strong> 
+                            ${getNotificationText(notif)}
+                        </p>
+                        <small>${new Date(notif.createdAt).toLocaleString()}</small>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        } catch (error) {
+            appContent.innerHTML = '<p class="error-message">Failed to load notifications.</p>';
+        }
+    }
+
+    function getNotificationIcon(type) {
+        switch (type) {
+            case 'like': return ICONS.heartFilled;
+            case 'comment': return ICONS.comment;
+            case 'reply': return ICONS.reply;
+            default: return ICONS.comment;
+        }
+    }
+
+    function getNotificationText(notif) {
+        switch (notif.type) {
+            case 'like': return `liked your post: "${escapeHtml(notif.postTextSnippet)}"`;
+            case 'comment': return `commented on your post: "${escapeHtml(notif.commentTextSnippet)}"`;
+            case 'reply': return `replied to your comment: "${escapeHtml(notif.commentTextSnippet)}"`;
+            default: return 'interacted with you.';
+        }
+    }
+
+    // --- Shared Post Rendering ---
+    function renderPosts(posts) {
+        appContent.innerHTML = '';
+        if (posts.length === 0) {
+            appContent.innerHTML = '<p class="text-center padding-1">No posts to show.</p>';
+            return;
+        }
+
+        const feedContainer = document.createElement('div');
+        feedContainer.className = 'feed-container';
+
+        posts.forEach(post => {
+            feedContainer.appendChild(createPostElement(post));
+        });
+
+        appContent.appendChild(feedContainer);
+    }
+
+    function createPostElement(post) {
+        const el = document.createElement('div');
+        el.className = 'post-card';
+
+        const isLiked = post.likes && post.likes.some(l => l.username === currentUsername);
+
+        el.innerHTML = `
+            <div class="post-header">
+                <span class="post-author">${escapeHtml(post.username)}</span>
+                <span class="post-time">${timeAgo(new Date(post.createdAt))}</span>
+            </div>
+            <div class="post-content">${escapeHtml(post.text)}</div>
+            <div class="post-actions">
+                <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" data-id="${escapeHtml(post._id)}">
+                    ${isLiked ? ICONS.heartFilled : ICONS.heartOutline} <span>${post.likes ? post.likes.length : 0}</span>
+                </button>
+                <button class="action-btn comment-btn" data-id="${escapeHtml(post._id)}">
+                    ${ICONS.comment} <span>${post.commentCount || 0}</span>
+                </button>
+                ${post.username === currentUsername ? `<button class="action-btn delete-btn" data-id="${escapeHtml(post._id)}">${ICONS.trash}</button>` : ''}
+            </div>
+        `;
+
+        // Event Listeners
+        el.querySelector('.like-btn').addEventListener('click', (e) => handleLike(post._id, e.target));
+        el.querySelector('.comment-btn').addEventListener('click', () => loadSinglePost(post._id));
+        if (post.username === currentUsername) {
+            el.querySelector('.delete-btn').addEventListener('click', () => handleDeletePost(post._id));
+        }
+        el.querySelector('.post-author').addEventListener('click', () => loadProfile(post.username));
+
+        return el;
+    }
+
+    async function handleLike(postId, btn) {
+        try {
+            const res = await fetchWithAuth(`${API_BASE_URL}/${postId}/like`, { method: 'POST' });
+            if (res.ok) {
+                const updatedPost = await res.json();
+                const isLiked = updatedPost.likes.some(l => l.username === currentUsername);
+                btn.innerHTML = `${isLiked ? ICONS.heartFilled : ICONS.heartOutline} <span>${updatedPost.likes.length}</span>`;
+                btn.classList.toggle('liked', isLiked);
+            }
+        } catch (e) {
+            // alert('Login to like posts'); 
+        }
+    }
+
+    async function handleDeletePost(postId) {
+        if (!confirm('Delete this post?')) return;
+        try {
+            const res = await fetchWithAuth(`${API_BASE_URL}/${postId}`, { method: 'DELETE' });
+            if (res.ok) {
+                loadSection(currentSection); // Reload current view
+            }
+        } catch (e) {
+            alert('Failed to delete post');
+        }
+    }
+
+    // --- Single Post View (Comments) ---
+    async function loadSinglePost(postId) {
+        try {
+            const res = await fetch(`${API_BASE_URL}/${postId}`);
+            if (!res.ok) throw new Error('Post not found');
+            const post = await res.json();
+            renderSinglePost(post);
+        } catch (e) {
+            alert('Error loading post');
+        }
+    }
+
+    function renderSinglePost(post) {
+        currentSection = 'single-post';
+        sectionTitle.textContent = 'Post';
+        appContent.innerHTML = '';
+
+        const postEl = createPostElement(post);
+        postEl.querySelector('.comment-btn').disabled = true; // Disable comment button in single view
+
+        const commentsSection = document.createElement('div');
+        commentsSection.className = 'comments-section';
+
+        // Reply State
+        let replyingToId = null;
+        let replyingToUsername = null;
+
+        commentsSection.innerHTML = `
+            <h3>Comments</h3>
+            <div class="comment-form">
+                <div id="replying-indicator" style="display: none; font-size: 0.9em; color: var(--primary-color); margin-bottom: 5px;">
+                    Replying to <span id="reply-username"></span> 
+                    <button id="cancel-reply-btn" class="cancel-reply-btn">${ICONS.close}</button>
+                </div>
+                <input type="text" id="comment-input" placeholder="Add a comment...">
+                <button id="submit-comment-btn">Send</button>
+            </div>
+            <div class="comments-list"></div>
+        `;
+
+        // Organize comments into tree
+        const commentMap = {};
+        const rootComments = [];
+
+        // Initialize map
+        post.comments.forEach(c => {
+            c.children = [];
+            commentMap[c.id] = c;
+        });
+
+        // Build tree
+        post.comments.forEach(c => {
+            if (c.parentId && commentMap[c.parentId]) {
+                commentMap[c.parentId].children.push(c);
+            } else {
+                rootComments.push(c);
+            }
+        });
+
+        const list = commentsSection.querySelector('.comments-list');
+
+        function createCommentNode(comment, level = 0) {
+            const container = document.createElement('div');
+            container.className = 'comment-thread';
+            if (level > 0) container.style.marginLeft = '20px';
+            if (level > 0) container.style.borderLeft = '2px solid var(--border-color)';
+            if (level > 0) container.style.paddingLeft = '10px';
+
+            const commentEl = document.createElement('div');
+            commentEl.className = 'comment-item';
+            commentEl.innerHTML = `
+                <div class="comment-header">
+                    <strong>${escapeHtml(comment.username)}</strong>
+                    <small>${timeAgo(new Date(comment.timestamp))}</small>
+                </div>
+                <div class="comment-text">${escapeHtml(comment.text)}</div>
+                <div class="comment-actions">
+                     <button class="small-button reply-btn" data-id="${comment.id}" data-username="${escapeHtml(comment.username)}">Reply</button>
+                </div>
+            `;
+
+            // Handle Reply Click
+            commentEl.querySelector('.reply-btn').addEventListener('click', () => {
+                replyingToId = comment.id;
+                replyingToUsername = comment.username;
+
+                const indicator = commentsSection.querySelector('#replying-indicator');
+                const usernameSpan = commentsSection.querySelector('#reply-username');
+                const input = commentsSection.querySelector('#comment-input');
+
+                indicator.style.display = 'block';
+                usernameSpan.textContent = replyingToUsername;
+                input.placeholder = `Reply to ${replyingToUsername}...`;
+                input.focus();
+            });
+
+            container.appendChild(commentEl);
+
+            if (comment.children.length > 0) {
+                const childrenContainer = document.createElement('div');
+                comment.children.forEach(child => {
+                    childrenContainer.appendChild(createCommentNode(child, level + 1));
+                });
+                container.appendChild(childrenContainer);
+            }
+
+            return container;
+        }
+
+        rootComments.forEach(root => {
+            list.appendChild(createCommentNode(root));
+        });
+
+        // Cancel Reply
+        commentsSection.querySelector('#cancel-reply-btn').addEventListener('click', () => {
+            replyingToId = null;
+            replyingToUsername = null;
+            commentsSection.querySelector('#replying-indicator').style.display = 'none';
+            commentsSection.querySelector('#comment-input').placeholder = "Add a comment...";
+        });
+
+        // Submit Comment/Reply
+        commentsSection.querySelector('#submit-comment-btn').addEventListener('click', async () => {
+            const input = commentsSection.querySelector('#comment-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            try {
+                const payload = { text };
+                if (replyingToId) payload.parentId = replyingToId;
+
+                const res = await fetchWithAuth(`${API_BASE_URL}/${post._id}/comments`, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    loadSinglePost(post._id); // Reload to show new comment
+                }
+            } catch (e) {
+                alert('Failed to post comment');
+            }
+        });
+
+        appContent.appendChild(postEl);
+        appContent.appendChild(commentsSection);
+    }
+
+    // --- Utilities ---
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function timeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + "y";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + "mo";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + "d";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + "h";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + "m";
+        return Math.floor(seconds) + "s";
+    }
+});

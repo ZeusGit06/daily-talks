@@ -1,69 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#5c6bc0">
-    <title>Daily Talk's</title>
+    <meta name="theme-color" content="#6366f1">
+    <title>Daily Talks</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="style.css">
     <!-- <link rel="icon" href="/icons/icon-192.png" type="image/png"> -->
 </head>
-<body>
 
+<body>
     <!-- Offline Status Indicator -->
-    <div id="offline-indicator" class="offline-indicator" hidden> You are currently offline. Some features may be unavailable. </div>
+    <div id="offline-indicator" class="offline-indicator" hidden> You are currently offline. Some features may be
+        unavailable. </div>
 
     <!-- Age Confirmation Modal -->
-    <div id="age-confirm-modal" class="modal age-modal" hidden> <div class="modal-content"> <h2>Age Confirmation</h2> <p>Welcome to Daily Talk's! This is an anonymous platform where content is user-generated and ephemeral. Content may not be suitable for minors.</p> <p>Please confirm you are 18 years of age or older to enter.</p> <button id="confirm-age-button" class="confirm-button">I Confirm I Am 18+</button> </div> </div>
-
-    <!-- Info / Welcome Modal -->
-    <div id="info-modal" class="modal info-modal" hidden> <div class="modal-content"> <h2>Welcome to Daily Talk's!</h2> <div class="info-section"><h3>What is Daily Talk's?</h3><p>This is a public, anonymous, and ephemeral social journal. Think of it as a shared diary where you can post short thoughts about your day, and they disappear after 24 hours.</p></div> <div class="info-section"><h3>Why Use It?</h3><p>It's a space for low-pressure sharing without the permanence or identity focus of other platforms. Feeling stressed, happy, or just want to note something down? Share it here briefly! Example: "Finally finished that tough project! Feeling relieved. 🎉"</p></div> <div class="info-section"><h3>Key Things to Know:</h3><ul><li>✅ **Anonymous:** You get a random username (stored locally on your device).</li><li>⏳ **Ephemeral:** Posts (and their comments/likes) vanish after 24 hours.</li><li>📝 **Text-Only:** Keep it simple with text posts and comments.</li><li>🌍 **Public:** Posts are visible to anyone using the app unless you delete them sooner.</li></ul></div> <div class="info-section disclaimer-section"><h3>Disclaimer</h3><p>Content is user-generated. The platform developers are not responsible for user posts or interactions. Users are solely responsible for their own actions and the content they share.</p></div> <div class="info-section note-section"><h3>Important Note</h3><p>❗️ Please **do not share private or sensitive information** (personal details, passwords, etc.).</p><p>🚫 Avoid posting disrespectful, hateful, illegal, or inappropriate content.</p><p>💖 Be kind, be respectful, and remember your words matter.</p></div> <button id="confirm-info-button" class="confirm-button">Got It!</button> </div> </div>
-
-    <!-- *** NEW: Username Setup Modal (Shows if no username in localStorage) *** -->
-    <div id="username-setup-modal" class="modal username-modal" hidden>
+    <div id="age-confirm-modal" class="modal age-modal" hidden>
         <div class="modal-content">
-            <h2>Choose Your Username</h2>
-            <p>Select a unique username for your time here. You can use the random one or create your own (3-20 chars, letters/numbers/hyphen/underscore only).</p>
-
-            <div class="username-input-group">
-                <input type="text" id="username-input" placeholder="Enter or generate username..." required minlength="3" maxlength="20" pattern="^[a-zA-Z0-9_-]+$">
-                <button id="regenerate-username-button" class="icon-button" aria-label="Regenerate Username">🔄</button>
-            </div>
-            <div id="username-status" class="username-status-message"></div> <!-- For Available/Taken messages -->
-
-            <div class="profile-visibility-group">
-                <label>Profile Visibility:</label>
-                <div>
-                    <input type="radio" id="visibility-public" name="profileVisibility" value="public" checked>
-                    <label for="visibility-public">Public (Others can see your posts)</label>
-                </div>
-                <div>
-                    <input type="radio" id="visibility-private" name="profileVisibility" value="private">
-                    <label for="visibility-private">Private (Only you can see your posts)</label>
-                </div>
-            </div>
-
-            <button id="confirm-username-button" class="confirm-button">Confirm Username & Enter</button>
-            <div id="username-setup-error" class="error-message" style="display: none;"></div> <!-- Specific errors for this modal -->
+            <h2>Age Confirmation</h2>
+            <p>Welcome to Daily Talks! This is an anonymous platform where content is user-generated and ephemeral.
+                Content may not be suitable for minors.</p>
+            <p>Please confirm you are 18 years of age or older to enter.</p> <button id="confirm-age-button"
+                class="confirm-button">I Confirm I Am 18+</button>
         </div>
     </div>
-    <!-- *** End Username Setup Modal *** -->
 
+    <!-- Info / Welcome Modal -->
+    <div id="info-modal" class="modal info-modal" hidden>
+        <div class="modal-content">
+            <h2>Welcome to Daily Talks!</h2>
+            <div class="info-section">
+                <h3>What is Daily Talks?</h3>
+                <p>This is a public, anonymous, and ephemeral social journal. Think of it as a shared diary where you
+                    can post short thoughts about your day, and they disappear after 24 hours.</p>
+            </div>
+            <div class="info-section">
+                <h3>Why Use It?</h3>
+                <p>It's a space for low-pressure sharing without the permanence or identity focus of other platforms.
+                    Feeling stressed, happy, or just want to note something down? Share it here briefly! Example:
+                    "Finally finished that tough project! Feeling relieved. 🎉"</p>
+            </div>
+            <div class="info-section">
+                <h3>Key Things to Know:</h3>
+                <ul>
+                    <li>✅ **Anonymous:** You get a random username (stored locally on your device).</li>
+                    <li>⏳ **Ephemeral:** Posts (and their comments/likes) vanish after 24 hours.</li>
+                    <li>📝 **Text-Only:** Keep it simple with text posts and comments.</li>
+                    <li>🌍 **Public:** Posts are visible to anyone using the app unless you delete them sooner.</li>
+                </ul>
+            </div>
+            <div class="info-section disclaimer-section">
+                <h3>Disclaimer</h3>
+                <p>Content is user-generated. The platform developers are not responsible for user posts or
+                    interactions. Users are solely responsible for their own actions and the content they share.</p>
+            </div>
+            <div class="info-section note-section">
+                <h3>Important Note</h3>
+                <p>❗️ Please **do not share private or sensitive information** (personal details, passwords, etc.).</p>
+                <p>🚫 Avoid posting disrespectful, hateful, illegal, or inappropriate content.</p>
+                <p>💖 Be kind, be respectful, and remember your words matter.</p>
+            </div> <button id="confirm-info-button" class="confirm-button">Got It!</button>
+        </div>
+    </div>
 
-    <!-- Header -->
-    <header id="app-header"> <h1 id="section-title">Home</h1> <button id="settings-button" class="icon-button" aria-label="Settings">⚙️</button> </header>
+    <!-- Auth Modal (Login/Register) -->
+    <div id="auth-modal" class="modal auth-modal" hidden>
+        <div class="modal-content">
+            <h2 id="auth-title">Welcome to Daily Talks</h2>
+            <p id="auth-subtitle">Please log in or register to continue.</p>
 
-    <!-- Main Content Area -->
-    <main id="app-content"> <!-- Placeholder until app loads or modals are confirmed --> <div id="initial-load-placeholder"><p class="text-center padding-1">Loading...</p></div> </main>
+            <!-- Login Form -->
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" required>
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit" class="confirm-button">Log In</button>
+                <p class="auth-switch">Don't have an account? <a href="#" id="switch-to-register">Register</a></p>
+                <div id="login-error" class="error-message" style="display: none;"></div>
+            </form>
 
-    <!-- Bottom Navigation Bar -->
-    <nav id="bottom-nav"> <button data-section="home" class="nav-button active" aria-label="Home">🏠</button> <button data-section="notifications" class="nav-button" aria-label="Notifications">🔔</button> <button data-section="create" class="nav-button create-button" aria-label="Create Post">➕</button> <button data-section="profile" class="nav-button" aria-label="Profile">👤</button> </nav>
+            <!-- Register Form -->
+            <form id="register-form" hidden>
+                <div class="input-group">
+                    <label for="register-username">Choose Username</label>
+                    <input type="text" id="register-username" required minlength="3" maxlength="20"
+                        pattern="^[a-zA-Z0-9_\-]+$">
+                    <small>3-20 chars, letters, numbers, -, _</small>
+                </div>
+                <div class="input-group">
+                    <label for="register-password">Choose Password</label>
+                    <input type="password" id="register-password" required minlength="6">
+                    <small>Min 6 characters</small>
+                </div>
+
+                <div class="profile-visibility-group">
+                    <label>Profile Visibility:</label>
+                    <div>
+                        <input type="radio" id="reg-vis-public" name="registerVisibility" value="public" checked>
+                        <label for="reg-vis-public">Public</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="reg-vis-private" name="registerVisibility" value="private">
+                        <label for="reg-vis-private">Private</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="confirm-button">Register</button>
+                <p class="auth-switch">Already have an account? <a href="#" id="switch-to-login">Log In</a></p>
+                <div id="register-error" class="error-message" style="display: none;"></div>
+            </form>
+        </div>
+    </div>
 
     <!-- Settings Modal -->
-    <div id="settings-modal" class="modal" hidden> <div class="modal-content"> <button id="close-settings-button" class="icon-button close-button" aria-label="Close Settings">×</button> <h2>Settings</h2> <div class="setting-item theme-switcher"> <label for="theme-toggle">Dark Mode</label> <label class="switch"> <input type="checkbox" id="theme-toggle"> <span class="slider round"></span> </label> </div> <div class="setting-item about-section"> <h3>About Daily Talk's</h3> <p>Share your day anonymously. Posts are deleted after 24 hours. Be respectful.</p> </div> </div> </div>
+    <div id="settings-modal" class="modal" hidden>
+        <div class="modal-content"> <button id="close-settings-button" class="icon-button close-button"
+                aria-label="Close Settings">×</button>
+            <h2>Settings</h2>
+            <div class="setting-item theme-switcher"> <label for="theme-toggle">Dark Mode</label> <label class="switch">
+                    <input type="checkbox" id="theme-toggle"> <span class="slider round"></span> </label> </div>
+            <div class="setting-item about-section">
+                <h3>About Daily Talks</h3>
+                <p>Share your day anonymously. Posts are deleted after 24 hours. Be respectful.</p>
+            </div>
+            <div class="setting-item logout-section">
+                <button id="logout-button" class="confirm-button" style="background-color: #e53935;">Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-wrapper">
+        <!-- Header -->
+        <header id="app-header">
+            <h1 id="section-title">Home</h1>
+            <button id="settings-button" class="icon-button" aria-label="Settings">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
+                </svg>
+            </button>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="app-content"> <!-- Placeholder until app loads or modals are confirmed -->
+            <div id="initial-load-placeholder">
+                <p class="text-center padding-1">Loading...</p>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav id="bottom-nav">
+            <button data-section="home" class="nav-button active" aria-label="Home">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            </button>
+            <button data-section="notifications" class="nav-button" aria-label="Notifications">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+            </button>
+            <button data-section="create" class="nav-button create-button" aria-label="Create Post">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+            <button data-section="profile" class="nav-button" aria-label="Profile">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            </button>
+        </nav>
+    </div> <!-- End #app-wrapper -->
 
     <!-- Link to the JavaScript file -->
     <script src="script.js"></script>
 </body>
+
 </html>
