@@ -6,8 +6,11 @@ const auth = require('../middleware/auth');
 // Get Notifications (Protected)
 router.get('/', auth, async (req, res) => {
     const username = req.user.username; // From Token
+    console.log(`[Notifications] Fetching for user: ${username}`);
     try {
         const notifications = await Notification.find({ recipientUsername: username }).sort({ createdAt: -1 }).limit(50);
+        console.log(`[Notifications] Found ${notifications.length} notifications for ${username}`);
+
         const notificationIds = notifications.filter(n => !n.isRead).map(n => n._id);
         if (notificationIds.length > 0) {
             try {

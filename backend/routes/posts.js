@@ -8,14 +8,25 @@ const auth = require('../middleware/auth');
 
 // --- Helper Function to Create Notification ---
 async function createNotification(recipient, sender, type, post, commentText = null, parentCommentId = null) {
-    if (recipient === sender) { return; } // No self-notifications
+    console.log(`[Notification] Attempting to create: recipient=${recipient}, sender=${sender}, type=${type}, postId=${post?._id}`);
+
+    if (recipient === sender) {
+        console.log(`[Notification] Skipped: recipient and sender are the same (${recipient})`);
+        return;
+    }
+
+    if (!recipient || !sender || !type || !post) {
+        console.error(`[Notification] Invalid params: recipient=${recipient}, sender=${sender}, type=${type}, post=${!!post}`);
+        return;
+    }
+
     try {
         const notificationData = {
             recipientUsername: recipient,
             senderUsername: sender,
             type: type, // 'like', 'comment', or 'reply'
             postId: post._id,
-            postTextSnippet: post.text.substring(0, 50) + (post.text.length > 50 ? '...' : ''),
+            postTextSnippet: post.text ? post.text.substring(0, 50) + (post.text.length > 50 ? '...' : '') : '',
             isRead: false,
             createdAt: new Date(),
             parentCommentId: parentCommentId // Include parent ID if it's a reply notification
@@ -24,11 +35,15 @@ async function createNotification(recipient, sender, type, post, commentText = n
         if ((type === 'comment' || type === 'reply') && commentText) {
             notificationData.commentTextSnippet = commentText.substring(0, 50) + (commentText.length > 50 ? '...' : '');
         }
+
+        console.log(`[Notification] Data prepared:`, JSON.stringify(notificationData));
+
         const newNotification = new Notification(notificationData);
-        await newNotification.save();
-        console.log(`Notification created for ${recipient} about post ${post._id} (Type: ${type}${parentCommentId ? `, Parent: ${parentCommentId}` : ''})`);
+        const savedNotif = await newNotification.save();
+        console.log(`[Notification] SUCCESS: Created notification ${savedNotif._id} for ${recipient} about post ${post._id} (Type: ${type})`);
     } catch (error) {
-        console.error(`Error creating notification for post ${post._id}:`, error);
+        console.error(`[Notification] ERROR: Failed to create notification for post ${post._id}:`, error.message);
+        console.error(`[Notification] Full error:`, error);
     }
 }
 

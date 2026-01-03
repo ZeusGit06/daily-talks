@@ -85,6 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUsername = storedUsername;
             authToken = storedToken;
             loadSection('home');
+            fetchUnreadCount(); // Check for notifications on load
+            startNotificationPolling(); // Start periodic polling
         } else {
             showAuthModal();
         }
@@ -184,6 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem(TOKEN_KEY, token);
         authModal.hidden = true;
         loadSection('home');
+        fetchUnreadCount(); // Check for notifications after login
+        startNotificationPolling(); // Start periodic polling
     }
 
     function showError(element, message) {
@@ -244,6 +248,49 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             offlineIndicator.hidden = true;
         }
+    }
+
+    // --- Notification Badge ---
+    let notificationPollInterval = null;
+
+    async function fetchUnreadCount() {
+        if (!authToken) return;
+        try {
+            const response = await fetchWithAuth(`${API_BASE_URL}/notifications/unread-count`);
+            if (response.ok) {
+                const data = await response.json();
+                updateNotificationBadge(data.unreadCount);
+            }
+        } catch (error) {
+            console.log('Could not fetch notification count');
+        }
+    }
+
+    function updateNotificationBadge(count) {
+        const notifBtn = document.querySelector('.nav-button[data-section="notifications"]');
+        if (!notifBtn) return;
+
+        // Remove existing badge
+        let badge = notifBtn.querySelector('.notif-badge');
+
+        if (count > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'notif-badge';
+                notifBtn.appendChild(badge);
+            }
+            badge.textContent = count > 9 ? '9+' : count;
+        } else if (badge) {
+            badge.remove();
+        }
+    }
+
+    function startNotificationPolling() {
+        if (notificationPollInterval) {
+            clearInterval(notificationPollInterval);
+        }
+        // Poll every 30 seconds
+        notificationPollInterval = setInterval(fetchUnreadCount, 30000);
     }
 
     // --- Section Loading Logic ---
@@ -483,6 +530,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetchWithAuth(`${API_BASE_URL}/notifications`);
             const notifications = await response.json();
+
+            // Clear the badge since viewing marks them as read
+            updateNotificationBadge(0);
 
             if (notifications.length === 0) {
                 appContent.innerHTML = '<p class="text-center padding-1">No notifications.</p>';
