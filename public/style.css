@@ -123,6 +123,8 @@ body {
     max-width: var(--app-max-width);
     margin: 0 auto;
     min-height: 100vh;
+    min-height: 100dvh;
+    /* Use dynamic viewport height if supported */
     height: 100%;
     position: relative;
     display: flex;
@@ -184,11 +186,15 @@ body {
 
 /* --- Bottom Nav --- */
 #bottom-nav {
-    position: absolute;
+    position: fixed;
+    /* Use fixed so it stays on screen glass */
     bottom: 0;
-    left: 0;
+    left: 50%;
+    transform: translateX(-50%);
     width: 100%;
-    height: var(--nav-height);
+    max-width: var(--app-max-width);
+    height: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
+    /* Account for home bar */
     background-color: var(--surface-transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -196,7 +202,8 @@ body {
     display: flex;
     justify-content: space-evenly;
     align-items: center;
-    z-index: 50;
+    z-index: 100;
+    /* Ensure it is on top */
     padding: 0 1rem;
     padding-bottom: env(safe-area-inset-bottom, 0px);
 }
