@@ -53,19 +53,25 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Initialization ---
-    init();
+    // Moved to the end of DOMContentLoaded to ensure listeners are attached first.
 
     function init() {
-        loadTheme();
-        checkOfflineStatus();
-        window.addEventListener('online', checkOfflineStatus);
-        window.addEventListener('offline', checkOfflineStatus);
+        console.log("App initializing...");
+        try {
+            loadTheme();
+            checkOfflineStatus();
+            window.addEventListener('online', checkOfflineStatus);
+            window.addEventListener('offline', checkOfflineStatus);
 
-        // Check Age Confirmation
-        if (!localStorage.getItem(AGE_CONFIRM_KEY)) {
-            ageConfirmModal.hidden = false;
-        } else {
-            checkInfoSeen();
+            // Check Age Confirmation
+            if (!localStorage.getItem(AGE_CONFIRM_KEY)) {
+                ageConfirmModal.hidden = false;
+            } else {
+                checkInfoSeen();
+            }
+        } catch (err) {
+            console.error("Initialization error:", err);
+            // Even if init fails, we want listeners to be attached.
         }
     }
 
@@ -622,7 +628,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         // Event Listeners
-        el.querySelector('.like-btn').addEventListener('click', (e) => handleLike(post._id, e.target));
+        el.querySelector('.like-btn').addEventListener('click', (e) => handleLike(post._id, e.currentTarget));
         el.querySelector('.comment-btn').addEventListener('click', () => loadSinglePost(post._id));
         if (post.username === currentUsername) {
             el.querySelector('.delete-btn').addEventListener('click', () => handleDeletePost(post._id));
@@ -830,4 +836,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (interval > 1) return Math.floor(interval) + "m";
         return Math.floor(seconds) + "s";
     }
+    // Initialize App
+    init();
 });
