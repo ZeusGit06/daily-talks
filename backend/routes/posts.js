@@ -5,6 +5,7 @@ const Post = require('../models/Post');
 const Comment = require('../models/Comment');
 const Notification = require('../models/Notification');
 const auth = require('../middleware/auth');
+const sanitize = require('../utils/sanitize');
 
 // --- Helper Function to Create Notification ---
 async function createNotification(recipient, sender, type, post, commentText = null, parentCommentId = null) {
@@ -54,7 +55,8 @@ router.post('/posts', auth, async (req, res) => {
 
     if (!text) { return res.status(400).json({ message: 'Text is required.' }); }
     try {
-        const newPost = new Post({ username: username, text: text });
+        const sanitizedText = sanitize(text);
+        const newPost = new Post({ username: username, text: sanitizedText });
         const savedPost = await newPost.save();
         res.status(201).json(savedPost.toJSON());
     } catch (error) {
@@ -162,10 +164,11 @@ router.post('/:postId/comments', auth, async (req, res) => {
             }
         }
 
+        const sanitizedText = sanitize(text);
         const newComment = new Comment({
             postId: postId,
             username: username,
-            text: text,
+            text: sanitizedText,
             parentId: parentId || null
         });
 
