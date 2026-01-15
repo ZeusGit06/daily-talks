@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Profile = require('../models/Profile');
+const sanitize = require('../utils/sanitize');
 
 // Register
 router.post('/register', async (req, res) => {
@@ -10,11 +11,12 @@ router.post('/register', async (req, res) => {
         return res.status(400).json({ message: 'Username and password are required.' });
     }
     try {
-        const existingProfile = await Profile.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
+        const sanitizedUsername = sanitize(username);
+        const existingProfile = await Profile.findOne({ username: { $regex: new RegExp(`^${sanitizedUsername}$`, 'i') } });
         if (existingProfile) {
             return res.status(409).json({ message: 'Username already exists.', code: 'USERNAME_TAKEN' });
         }
-        const newProfile = new Profile({ username, password, isPublic });
+        const newProfile = new Profile({ username: sanitizedUsername, password, isPublic });
         await newProfile.save();
 
         const token = jwt.sign({ _id: newProfile._id, username: newProfile.username }, process.env.JWT_SECRET || 'default_secret_key_change_me', { expiresIn: '7d' });

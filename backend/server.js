@@ -61,9 +61,19 @@ app.use('/api', generalLimiter);
 app.use('/api/auth', authLimiter);
 
 // --- Database Connection ---
-mongoose.connect(process.env.MONGODB_URI)
+const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) {
+    console.error('FATAL ERROR: MONGODB_URI is not defined.');
+    console.error('Please create a .env file and add the MONGODB_URI variable.');
+    process.exit(1); // Exit the application with an error code
+}
+
+mongoose.connect(mongoUri)
     .then(() => console.log('MongoDB Connected Successfully'))
-    .catch(err => console.error('MongoDB Connection Error:', err));
+    .catch(err => {
+        console.error('MongoDB Connection Error:', err);
+        process.exit(1); // Exit on connection error as well
+    });
 
 // --- API Routes ---
 // Mount the API routes under the /api prefix
